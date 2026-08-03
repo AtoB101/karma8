@@ -148,9 +148,7 @@ contract DisputeArbitrator is ReentrancyGuard {
     function resolve(uint256 disputeId) external nonReentrant {
         Dispute storage d = _disputes[disputeId];
         if (d.resolved || d.openedAt == 0) revert InvalidState();
-        require(
-            d.sellerVotes + d.buyerVotes == d.panel.length || block.timestamp >= d.deadline, "early"
-        );
+        require(d.sellerVotes + d.buyerVotes == d.panel.length || block.timestamp >= d.deadline, "early");
         _resolve(disputeId);
     }
 
@@ -174,17 +172,8 @@ contract DisputeArbitrator is ReentrancyGuard {
         )
     {
         Dispute storage d = _disputes[disputeId];
-        return (
-            d.orderId,
-            d.buyer,
-            d.seller,
-            d.amountUsdc,
-            d.resolved,
-            d.ruling,
-            d.sellerVotes,
-            d.buyerVotes,
-            d.deadline
-        );
+        return
+            (d.orderId, d.buyer, d.seller, d.amountUsdc, d.resolved, d.ruling, d.sellerVotes, d.buyerVotes, d.deadline);
     }
 
     function accuracyOf(address node) public view returns (uint256) {
@@ -196,8 +185,7 @@ contract DisputeArbitrator is ReentrancyGuard {
     function _resolve(uint256 disputeId) internal {
         Dispute storage d = _disputes[disputeId];
         d.resolved = true;
-        Ruling outcome =
-            d.sellerVotes >= d.buyerVotes ? Ruling.ReleaseSeller : Ruling.RefundBuyer;
+        Ruling outcome = d.sellerVotes >= d.buyerVotes ? Ruling.ReleaseSeller : Ruling.RefundBuyer;
         d.ruling = outcome;
 
         // Score panel members
@@ -226,9 +214,7 @@ contract DisputeArbitrator is ReentrancyGuard {
 
         if (coreEscrowAdapter != address(0)) {
             if (outcome == Ruling.ReleaseSeller) {
-                (bool ok,) = coreEscrowAdapter.call(
-                    abi.encodeWithSignature("releaseToSeller(bytes32)", d.orderId)
-                );
+                (bool ok,) = coreEscrowAdapter.call(abi.encodeWithSignature("releaseToSeller(bytes32)", d.orderId));
                 ok;
             } else {
                 (bool ok,) = coreEscrowAdapter.call(abi.encodeWithSignature("refundToBuyer(bytes32)", d.orderId));

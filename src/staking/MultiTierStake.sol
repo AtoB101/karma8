@@ -210,8 +210,7 @@ contract MultiTierStake is IMultiTierStake, ReentrancyGuard {
 
     function isDeveloper(address account) external view returns (bool) {
         Position memory p = positions[account];
-        return !p.banned && uint8(p.tier) >= uint8(Tier.Developer)
-            && p.amount >= KarmaEconomyConstants.TIER2_MIN;
+        return !p.banned && uint8(p.tier) >= uint8(Tier.Developer) && p.amount >= KarmaEconomyConstants.TIER2_MIN;
     }
 
     function isPartner(address account) external view returns (bool) {

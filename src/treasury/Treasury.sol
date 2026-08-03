@@ -132,11 +132,7 @@ contract Treasury is IAutomationCompatible, ReentrancyGuard {
         emit FeeReceived(msg.sender, amount);
     }
 
-    function checkUpkeep(bytes calldata)
-        external
-        view
-        returns (bool upkeepNeeded, bytes memory performData)
-    {
+    function checkUpkeep(bytes calldata) external view returns (bool upkeepNeeded, bytes memory performData) {
         upkeepNeeded = enableRevenueMode
             && block.timestamp >= lastDistributionAt + KarmaEconomyConstants.WEEKLY_DISTRIBUTION_INTERVAL
             && usdc.balanceOf(address(this)) > pendingSubsidyBudget;
@@ -158,11 +154,7 @@ contract Treasury is IAutomationCompatible, ReentrancyGuard {
     }
 
     /// @notice Governance-approved ecological subsidy — only to known pool sinks, never private EOAs.
-    function executeSubsidy(SubsidyKind kind, uint256 amount, bytes32 proposalId)
-        external
-        nonReentrant
-        onlyGovernance
-    {
+    function executeSubsidy(SubsidyKind kind, uint256 amount, bytes32 proposalId) external nonReentrant onlyGovernance {
         if (!enableRevenueMode) revert RevenueOff();
         address pool = _poolFor(kind);
         if (pool == address(0)) revert InvalidSubsidy();

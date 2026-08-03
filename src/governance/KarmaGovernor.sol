@@ -110,9 +110,7 @@ contract KarmaGovernor is ReentrancyGuard {
         ) {
             revert ForbiddenParam();
         }
-        id = _create(
-            ProposalType.CustomCall, Treasury.SubsidyKind.GovernanceEcoSubsidy, 0, target, data, description
-        );
+        id = _create(ProposalType.CustomCall, Treasury.SubsidyKind.GovernanceEcoSubsidy, 0, target, data, description);
     }
 
     function vote(uint256 id, bool support) external {

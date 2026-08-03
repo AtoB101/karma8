@@ -88,14 +88,8 @@ contract KarmaVesting is ReentrancyGuard {
     {
         require(beneficiary != address(0) && total > 0, "bad grant");
         id = ++nextGrantId;
-        grants[id] = Grant({
-            category: category,
-            beneficiary: beneficiary,
-            total: total,
-            claimed: 0,
-            start: start,
-            active: true
-        });
+        grants[id] =
+            Grant({category: category, beneficiary: beneficiary, total: total, claimed: 0, start: start, active: true});
         grantsOf[beneficiary].push(id);
         emit GrantCreated(id, category, beneficiary, total);
     }
@@ -206,12 +200,8 @@ contract KarmaVesting is ReentrancyGuard {
     function _miningVested(uint256 total, uint64 start, uint256 t) internal pure returns (uint256) {
         // Year1 50%, Year2 25%, Year3 12.5%, Year4 12.5% residual linearized monthly within year
         if (t <= start) return 0;
-        uint256[4] memory yearShare = [
-            (total * 50) / 100,
-            (total * 25) / 100,
-            (total * 125) / 1000,
-            (total * 125) / 1000
-        ];
+        uint256[4] memory yearShare =
+            [(total * 50) / 100, (total * 25) / 100, (total * 125) / 1000, (total * 125) / 1000];
         uint256 vested;
         for (uint256 y = 0; y < 4; y++) {
             uint256 yStart = start + y * 365 days;

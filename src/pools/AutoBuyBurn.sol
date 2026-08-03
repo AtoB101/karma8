@@ -87,9 +87,8 @@ contract AutoBuyBurn is IRewardPool, ReentrancyGuard {
         path[0] = address(usdc);
         path[1] = address(karma);
 
-        uint256[] memory amounts = router.swapExactTokensForTokens(
-            amountIn, amountOutMin, path, address(this), block.timestamp
-        );
+        uint256[] memory amounts =
+            router.swapExactTokensForTokens(amountIn, amountOutMin, path, address(this), block.timestamp);
         uint256 karmaOut = amounts[amounts.length - 1];
         karma.safeTransfer(KarmaEconomyConstants.BURN_ADDRESS, karmaOut);
         totalKarmaBurned += karmaOut;

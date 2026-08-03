@@ -40,7 +40,12 @@ contract ContributionNFT is ERC721, ReentrancyGuard {
         emit MinterUpdated(minter_);
     }
 
-    function mint(address to, uint256 weight, string calldata uri) external onlyMinter nonReentrant returns (uint256 id) {
+    function mint(address to, uint256 weight, string calldata uri)
+        external
+        onlyMinter
+        nonReentrant
+        returns (uint256 id)
+    {
         require(to != address(0) && weight > 0, "bad");
         id = ++nextId;
         contributions[id] = Contribution({weight: weight, uri: uri, mintedAt: uint64(block.timestamp)});
