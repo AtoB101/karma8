@@ -1,4 +1,4 @@
-.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage patch-verify security-local
+.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage patch-verify cross-repo security-local
 
 build:
 	forge build
@@ -22,6 +22,10 @@ golive:
 linkage:
 	forge test --match-contract CoreLinkage -vv
 	bash integrations/karma-core/verify_patch.sh
+	bash integrations/karma-core/run_cross_repo_test.sh
+
+cross-repo:
+	bash integrations/karma-core/run_cross_repo_test.sh
 
 demo-anvil:
 	anvil --chain-id 31337

@@ -1,9 +1,10 @@
 # 将 treasury/feeBridge 合入 AtoB101/Karma
 
-> 当前 CI identity **没有** 对 `AtoB101/Karma` 的 push 权限，因此补丁以可应用 unified diff 形式交付。  
-> 仓库维护者在 Karma 侧执行以下步骤即可完成跨仓库联动。
+> **状态（2026-08）**：`AtoB101/Karma` 已通过 PR #141 合入 `feeBridge` / `_collectEconomyFee`。  
+> `bash integrations/karma-core/verify_patch.sh` 对已合入 upstream 会报告 `PASS (upstream integrated)`。  
+> 跨仓实锤：`bash integrations/karma-core/run_cross_repo_test.sh`。
 
-## 方式 A：应用 diff（推荐）
+## 方式 A：应用 diff（历史 / 分叉回放）
 
 ```bash
 git clone https://github.com/AtoB101/Karma.git
