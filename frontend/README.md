@@ -1,0 +1,34 @@
+# karma-economy frontend
+
+可嵌入的 React 页面组件（wagmi + viem）。
+
+## 页面
+
+| 组件 | 功能 | 盈利关闭时 |
+|------|------|------------|
+| `StakePage` | 质押 / 查看权重 / 领分红 | 分红按钮置灰 |
+| `NodeRegisterPage` | 仲裁节点注册 | 注册可用 |
+| `GovernancePage` | 提案 / 投票 / 执行 | 投票可用 |
+| `ContributionNftPage` | 贡献 NFT 申领状态 | 权重分红锁定 |
+
+## 使用
+
+```tsx
+import { StakePage, type EconomyAddresses } from "@karma8/economy-frontend";
+
+const addresses: EconomyAddresses = {
+  treasury: "0x...",
+  stake: "0x...",
+  governor: "0x...",
+  stakerPool: "0x...",
+  contributionNft: "0x...",
+  karmaToken: "0x...",
+};
+
+export default function App() {
+  return <StakePage addresses={addresses} />;
+}
+```
+
+需由宿主应用提供 `wagmi` / `viem` / `React` 与钱包连接上下文。
+引入字体（可选）：Fraunces + DM Sans。
