@@ -48,12 +48,43 @@ cp .env.example .env
 forge script script/DeployEconomy.s.sol:DeployEconomy --rpc-url $RPC_URL --broadcast
 ```
 
-## 前端组件
+## 与 karma-core 对接
 
-`frontend/` 提供可嵌入的 React 页面组件：质押、节点注册、治理提案、贡献 NFT 申领。盈利未开启时分红/手续费减免按钮置灰。
+本仓库提供经济侧桥接：
+
+- `FeeBridge`：唯一收费写入路径（USDC → Treasury + GMV 镜像）
+- `SettlementMirror`：账单/GMV 只读视图（`IKarmaCoreView`）
+- `ReferenceSettlementCore`：本地联调用的结算替身
+- 生产补丁说明：[`integrations/karma-core/PATCH.md`](integrations/karma-core/PATCH.md)（针对 `AtoB101/Karma`）
+
+本地飞轮验收：
+
+```bash
+forge test --match-contract FlywheelE2E -vv
+```
+
+本地 demo 部署：
+
+```bash
+# terminal 1
+make demo-anvil
+# terminal 2
+make demo-deploy   # writes deployments/local.json
+```
+
+## 前端
+
+`frontend/` 可嵌入组件 + Vite demo 控制台（质押 / 节点 / 治理 / 贡献 NFT）。  
+盈利未开启时分红与手续费减免按钮置灰。
+
+```bash
+cd frontend && npm i && npm run dev
+```
 
 ## 文档
 
+- [商业落地清单](docs/COMMERCIAL_READINESS.md)
 - [部署文档](docs/DEPLOYMENT.md)
 - [合约地址对接说明](docs/INTEGRATION.md)
 - [开关启停操作手册](docs/SWITCH_OPS.md)
+- [安全红线](docs/SECURITY.md)
