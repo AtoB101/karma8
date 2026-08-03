@@ -3,7 +3,9 @@
 按经济规格：**karma-core 仅新增国库相关对接，不新增 Owner 权限体系**（沿用现有 `admin` 做一次性配置）。
 
 目标仓库：`https://github.com/AtoB101/Karma`  
-目标合约：`karma-core/contracts/core/KarmaBilateral.sol`
+目标合约：`karma-core/contracts/core/KarmaBilateral.sol`  
+可应用产物：`patches/0001-add-treasury-feebridge.diff`（标准 unified diff，支持 `git apply`）  
+本地校验：`bash integrations/karma-core/verify_patch.sh`
 
 ## 1. 新增状态
 

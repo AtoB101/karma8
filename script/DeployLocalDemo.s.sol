@@ -81,6 +81,8 @@ contract DeployLocalDemo is Script {
         mirror.setReporter(address(bridge), true);
         mirror.setReporter(address(escrow), true);
         escrow.setArbitrator(address(arbitrator));
+        escrow.setCoreTarget(address(core));
+        core.setEscrowController(address(escrow));
         arbitrator.setNodePool(address(verifierPool));
         arbitrator.setCoreEscrowAdapter(address(escrow));
         verifierPool.setArbitrator(address(arbitrator));

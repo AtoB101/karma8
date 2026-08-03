@@ -5,11 +5,12 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {FeeBridge} from "./FeeBridge.sol";
+import {ICoreEscrowTarget} from "../interfaces/ICoreEscrowTarget.sol";
 
 /// @title ReferenceSettlementCore
 /// @notice Local/reference stand-in for karma-core settle path used in economy E2E demos.
 /// @dev Production should use AtoB101/Karma KarmaBilateral + the published treasury patch.
-contract ReferenceSettlementCore is ReentrancyGuard {
+contract ReferenceSettlementCore is ReentrancyGuard, ICoreEscrowTarget {
     using SafeERC20 for IERC20;
 
     struct Order {
@@ -24,6 +25,7 @@ contract ReferenceSettlementCore is ReentrancyGuard {
     IERC20 public immutable usdc;
     FeeBridge public feeBridge;
     address public admin;
+    address public escrowController;
 
     mapping(bytes32 => Order) public orders;
     mapping(bytes32 => uint256) public escrowOf;
@@ -32,12 +34,18 @@ contract ReferenceSettlementCore is ReentrancyGuard {
     event OrderSettled(bytes32 indexed orderId, uint256 feeUsdc);
     event OrderRefunded(bytes32 indexed orderId);
     event OrderFrozen(bytes32 indexed orderId, bool frozen);
+    event EscrowControllerUpdated(address indexed controller);
 
     error Unauthorized();
     error BadState();
 
     modifier onlyAdmin() {
         if (msg.sender != admin) revert Unauthorized();
+        _;
+    }
+
+    modifier onlyAdminOrEscrow() {
+        if (msg.sender != admin && msg.sender != escrowController) revert Unauthorized();
         _;
     }
 
@@ -50,6 +58,11 @@ contract ReferenceSettlementCore is ReentrancyGuard {
 
     function setFeeBridge(address b) external onlyAdmin {
         feeBridge = FeeBridge(b);
+    }
+
+    function setEscrowController(address controller) external onlyAdmin {
+        escrowController = controller;
+        emit EscrowControllerUpdated(controller);
     }
 
     function openOrder(bytes32 orderId, address seller, address developer, uint256 amountUsdc) external nonReentrant {
@@ -89,12 +102,14 @@ contract ReferenceSettlementCore is ReentrancyGuard {
     }
 
     /// @notice Escrow controls used by economy CoreEscrowAdapter / ops.
-    function freezeOrder(bytes32 orderId) external onlyAdmin {
-        orders[orderId].frozen = true;
+    function freezeOrder(bytes32 orderId) external onlyAdminOrEscrow {
+        Order storage o = orders[orderId];
+        if (!o.open) revert BadState();
+        o.frozen = true;
         emit OrderFrozen(orderId, true);
     }
 
-    function releaseToSeller(bytes32 orderId) external onlyAdmin nonReentrant {
+    function releaseToSeller(bytes32 orderId) external onlyAdminOrEscrow nonReentrant {
         Order storage o = orders[orderId];
         if (!o.open) revert BadState();
         o.open = false;
@@ -105,7 +120,7 @@ contract ReferenceSettlementCore is ReentrancyGuard {
         emit OrderSettled(orderId, 0);
     }
 
-    function refundToBuyer(bytes32 orderId) external onlyAdmin nonReentrant {
+    function refundToBuyer(bytes32 orderId) external onlyAdminOrEscrow nonReentrant {
         Order storage o = orders[orderId];
         if (!o.open) revert BadState();
         o.open = false;

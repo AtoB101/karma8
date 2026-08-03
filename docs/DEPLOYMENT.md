@@ -5,7 +5,7 @@
 1. Foundry 已安装（`forge` / `cast` / `anvil`）
 2. 已部署或已知地址：
    - USDC（测试网可用 Mock）
-   - `karma-core` 只读视图地址（实现 `IKarmaCoreView`）
+   - `KARMA_CORE_ADDRESS`：`AtoB101/Karma` 的 `KarmaBilateral`（结算写入口）
    - Uniswap V2 Router（可选；测试网回购默认暂停）
 3. 准备 7 个多签成员地址（创始人 2 / 生态开发者 2 / 仲裁代表 2 / 社区 1）
 
@@ -15,7 +15,7 @@
 
 ```bash
 USDC_ADDRESS=
-KARMA_CORE_ADDRESS=
+KARMA_CORE_ADDRESS=   # KarmaBilateral
 UNISWAP_ROUTER=0x0000000000000000000000000000000000000000
 MSIG_OWNER_0=
 MSIG_OWNER_1=
@@ -40,7 +40,10 @@ forge script script/DeployEconomy.s.sol:DeployEconomy \
   --verify
 ```
 
-记录输出地址：`MultiSig` / `KARMA` / `Stake` / `Treasury` / 各 Pool / `Governor` / `Arbitrator`。
+记录输出地址：`MultiSig` / `KARMA` / `Stake` / `Treasury` / 各 Pool / `Governor` / `Arbitrator` /
+`SettlementMirror` / `FeeBridge` / `CoreEscrowAdapter`。
+
+> 只读视图请使用 **SettlementMirror**（不是 Bilateral）。`FeeBridge.core` 在部署时已设为 `KARMA_CORE_ADDRESS`。
 
 ### 2. 多签初始化（7/7 Controller）
 
@@ -55,10 +58,12 @@ forge script script/DeployEconomy.s.sol:DeployEconomy \
 
 ### 3. karma-core 对接
 
-在 `karma-core` 仅新增国库地址变量，指向本仓库 `Treasury`：
+1. 在 `AtoB101/Karma` 应用 `integrations/karma-core/patches/0001-add-treasury-feebridge.diff`
+2. `KarmaBilateral.setTreasury(Treasury)` + `setFeeBridge(FeeBridge)`
+3. 如需重配 economy 侧：`forge script script/WireKarmaCore.s.sol`
+4. **禁止** 为 karma-core 增加新的 Owner 体系（仅复用现有 `admin`）
 
-- 结算收取手续费时：`USDC.approve(treasury, fee)` + `Treasury.notifyFee(fee)`
-- **禁止** 为 karma-core 增加 Owner/管理员权限
+详情见 [`docs/INTEGRATION.md`](./INTEGRATION.md)。
 
 ### 4. Chainlink Automation
 

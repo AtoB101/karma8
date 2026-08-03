@@ -6,7 +6,7 @@
 |------|------|------------|------|
 | 协议与不可变约束 | 20 | 20 | 费率/分账/开关/隔离 |
 | 经济飞轮闭环 | 20 | 20 | E2E + GoLiveAcceptance |
-| karma-core 对接 | 20 | 18 | 补丁包+桥接齐；待 Karma 仓库维护者 `git apply` |
+| karma-core 对接 | 20 | 19 | 可应用 unified diff + DeployEconomy/WireKarmaCore/CoreLinkage；待 Karma 维护者合入补丁 |
 | 安全工程 | 15 | 14 | 硬化测试+Certora 规格+Slither；外部审计报告待出 |
 | 部署与运维 | 10 | 10 | Demo/Sepolia 脚本+开关手册+Automation 配置 |
 | 前端控制台 | 10 | 9 | Vite 控制台可用；生产索引看板可选增强 |
@@ -20,6 +20,7 @@
 ```bash
 forge test --match-contract GoLiveAcceptance -vv
 forge test --match-contract FlywheelE2E -vv
+forge test --match-contract CoreLinkage -vv
 forge test --match-contract SecurityHardening -vv
 bash integrations/karma-core/verify_patch.sh
 ```

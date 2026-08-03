@@ -1,27 +1,33 @@
-*** Begin Patch
-*** Update File: karma-core/contracts/core/KarmaBilateral.sol
-@@
-     // ── Attestation gate ─────────────────────────────────────────────────────
-     address public attestationGateway;
+diff --git a/karma-core/contracts/core/KarmaBilateral.sol b/karma-core/contracts/core/KarmaBilateral.sol
+index b6514b8..781316f 100644
+--- a/karma-core/contracts/core/KarmaBilateral.sol
++++ b/karma-core/contracts/core/KarmaBilateral.sol
+@@ -240,6 +240,12 @@ contract KarmaBilateral {
      mapping(uint256 => bytes32) public bindingTaskId;
      mapping(uint256 => bool)    public requiresAttestation;
-+
+ 
 +    // ── karma-economy fee sink (immutable fee bps live in economy) ───────────
 +    /// @notice karma-economy Treasury (informational / legacy notify path).
 +    address public treasury;
 +    /// @notice karma-economy FeeBridge — preferred fee + GMV recording path.
 +    address public feeBridge;
-@@
++
+     // ── SCP per-address balances ─────────────────────────────────────────────
+     mapping(address => uint256) public freeBalance;
+     mapping(address => uint256) public boundBalance;
+@@ -273,6 +279,8 @@ contract KarmaBilateral {
+     event TokenAllowed(address indexed token, bool allowed);
+     event InvariantChecked(address indexed token, uint256 supply, uint256 locked);
      event AttestationGatewayUpdated(address indexed gateway);
 +    event TreasuryUpdated(address indexed treasury);
 +    event FeeBridgeUpdated(address indexed feeBridge);
-@@
-     function setAttestationGateway(address gateway) external onlyAdmin {
-         if (gateway == address(0)) revert InvalidAddress();
-         attestationGateway = gateway;
+     event DisputeWindowUpdated(uint256 seconds_);
+     event OptimisticDisputeWindowUpdated(uint256 seconds_);
+     event EvidenceWindowUpdated(uint256 seconds_);
+@@ -1201,6 +1209,18 @@ contract KarmaBilateral {
          emit AttestationGatewayUpdated(gateway);
      }
-+
+ 
 +    /// @notice One-time/operational wiring to karma-economy Treasury.
 +    /// @dev Does not add a new owner role; reuses existing admin.
 +    function setTreasury(address treasury_) external onlyAdmin {
@@ -33,7 +39,12 @@
 +        feeBridge = feeBridge_;
 +        emit FeeBridgeUpdated(feeBridge_);
 +    }
-@@
++
+     // ─────────────────────────────────────────────────────────────────────────
+     //  INTERNAL — settlement execution helpers
+     // ─────────────────────────────────────────────────────────────────────────
+@@ -1229,15 +1249,25 @@ contract KarmaBilateral {
+ 
          pendingBatchAmount[token] -= (buyerAmount + agentAmount);
  
 -        _transfer(token, buyerOwner, buyerAmount);
@@ -50,12 +61,21 @@
 +
 +        if (buyerPayout > 0) _transfer(token, buyerOwner, buyerPayout);
 +        if (agentPayout > 0) _transfer(token, agentOwner, agentPayout);
-@@
-     function _transfer(address token, address to, uint256 amount) internal {
-         bool ok = IERC20Min(token).transfer(to, amount);
+ 
+         _checkInvariant(token);
+         _checkPerAddressInvariant(buyerOwner);
+         _checkPerAddressInvariant(agentOwner);
+ 
+         emit SettleFinalized(bindingId, proofHash);
+-        emit BindingSettled(bindingId, proofHash, buyerAmount, agentAmount);
++        emit BindingSettled(bindingId, proofHash, buyerPayout, agentPayout);
+     }
+ 
+     /// @dev Execute refund: burn both bills, return USDC to respective owners.
+@@ -1323,6 +1353,62 @@ contract KarmaBilateral {
          if (!ok) revert TransferFailed();
      }
-+
+ 
 +    /// @dev Forward fee to karma-economy FeeBridge. Returns 0 when unset / free mode.
 +    function _collectEconomyFee(
 +        uint256 bindingId,
@@ -111,4 +131,7 @@
 +        );
 +        if (!cOk) revert TransferFailed();
 +    }
-*** End Patch
++
+     function _checkInvariant(address token) internal {
+         uint256 supply = totalBillSupply[token];
+         uint256 locked = totalLocked[token];

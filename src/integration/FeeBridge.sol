@@ -26,6 +26,8 @@ contract FeeBridge is ReentrancyGuard {
 
     event CoreUpdated(address indexed core);
     event TreasuryUpdated(address indexed treasury);
+    event GovernanceUpdated(address indexed governance);
+    event StakeUpdated(address indexed stake);
     event FeeCollected(bytes32 indexed orderId, address indexed developer, uint256 amountUsdc, uint256 feeUsdc);
 
     error Unauthorized();
@@ -61,6 +63,17 @@ contract FeeBridge is ReentrancyGuard {
         require(treasury_ != address(0), "zero");
         treasury = ITreasuryFeeSink(treasury_);
         emit TreasuryUpdated(treasury_);
+    }
+
+    function setGovernance(address governance_) external onlyGovernance {
+        require(governance_ != address(0), "zero");
+        governance = governance_;
+        emit GovernanceUpdated(governance_);
+    }
+
+    function setStake(address stake_) external onlyGovernance {
+        stake = IMultiTierStake(stake_);
+        emit StakeUpdated(stake_);
     }
 
     /// @notice Quote fee for a developer using stake tier discounts when revenue mode is on.

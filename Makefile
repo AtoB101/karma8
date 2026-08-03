@@ -1,4 +1,4 @@
-.PHONY: build test fmt demo-anvil demo-deploy readiness golive patch-verify security-local
+.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage patch-verify security-local
 
 build:
 	forge build
@@ -13,8 +13,14 @@ flywheel:
 	forge test --match-contract FlywheelE2E -vv
 
 golive:
+	forge test --match-contract CoreLinkage -vv
 	forge test --match-contract GoLiveAcceptance -vv
+	forge test --match-contract FlywheelE2E -vv
 	forge test --match-contract SecurityHardening -vv
+	bash integrations/karma-core/verify_patch.sh
+
+linkage:
+	forge test --match-contract CoreLinkage -vv
 	bash integrations/karma-core/verify_patch.sh
 
 demo-anvil:
