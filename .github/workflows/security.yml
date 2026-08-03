@@ -1,0 +1,56 @@
+name: Security
+
+permissions: {}
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  patch-verify:
+    name: karma-core patch package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verify patch package anchors
+        run: bash integrations/karma-core/verify_patch.sh
+
+  slither:
+    name: Slither static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          submodules: recursive
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+      - name: Install Slither
+        run: pipx install slither-analyzer
+      - name: Run Slither summary (advisory)
+        continue-on-error: true
+        run: |
+          slither . --config-file slither.config.json --print human-summary | tee slither-summary.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: slither-summary
+          path: slither-summary.txt
+
+
+  certora-specs-present:
+    name: Certora specs present
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Check Certora package
+        run: |
+          test -f certora/conf/Treasury.conf
+          test -f certora/specs/Treasury.spec
+          test -f certora/specs/MultiTierStake.spec
+          echo "Certora specs ready (run with CERTORAKEY in private CI)"

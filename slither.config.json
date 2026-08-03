@@ -1,0 +1,5 @@
+{
+  "filter_paths": "lib|test|script|mocks|frontend|integrations/karma-core/upstream",
+  "exclude_dependencies": true,
+  "detectors_to_exclude": "naming-convention,solc-version,pragma"
+}

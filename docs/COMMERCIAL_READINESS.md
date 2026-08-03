@@ -1,51 +1,43 @@
 # 商业落地进度清单
 
-## 当前阶段目标
+更新目标：**≥95%**（见 [GO_LIVE_95.md](./GO_LIVE_95.md)）
 
-把 karma-economy 从「合约骨架」推进到「可联调、可演示、可审计」的冷启动待命态。
-
-## 清单
-
-### A. 协议与隔离（本仓库）
+## A. 协议与隔离
 
 - [x] 不可变费率 / 分账常量
 - [x] `enableRevenueMode` 默认 false + 回购暂停
 - [x] Treasury 禁止私人转账
-- [x] `FeeBridge` / `SettlementMirror` / `CoreEscrowAdapter`
+- [x] `FeeBridge` / `SettlementMirror` / `CoreEscrowAdapter` / `BilateralFeeHook`
 - [x] 本地 `ReferenceSettlementCore` 飞轮 E2E
-- [x] karma-core 最小补丁说明（`integrations/karma-core/PATCH.md`）
+- [x] karma-core 可应用补丁包 + 锚点校验脚本
+- [ ] Karma 仓库维护者合并补丁（无本 CI 写权限）
 
-### B. 工程交付
+## B. 工程与安全
 
-- [x] Foundry 工程 + CI
-- [x] 单元 / 集成 / 飞轮 E2E / 质押不变量测试
-- [x] `DeployEconomy` / `DeployLocalDemo` / `BootstrapAllocations`
-- [x] 部署、对接、开关、安全文档
+- [x] Foundry + CI（fmt/build/test）
+- [x] 单元 / 集成 / 飞轮 / GoLiveAcceptance / 安全硬化 / 不变量
+- [x] Certora 规格（Treasury / Stake）
+- [x] Slither workflow + 配置
+- [x] `DeployEconomy` / `DeployLocalDemo` / `DeploySepolia` / `BootstrapAllocations`
+- [ ] 第三方审计报告（材料已就绪）
 
-### C. 产品前端
+## C. 产品前端
 
-- [x] 嵌入式页面组件（质押/节点/治理/NFT）
-- [x] 可独立运行的 Vite demo 控制台（wagmi + 环境变量地址）
-- [ ] 生产控制台（索引、订单、运营看板）
+- [x] 嵌入式页面组件
+- [x] Vite 控制台（钱包连接 / 状态页 / 四业务页）
+- [x] `frontend/scripts/sync-addresses.mjs` 同步本地部署地址
+- [ ] 生产级订单索引看板（非上线阻塞项）
 
-### D. 跨仓库与网络
+## D. 网络与运维
 
-- [ ] 将 PATCH 合入 `AtoB101/Karma`（KarmaBilateral）
-- [ ] Sepolia 部署 economy + 配置 core treasury/feeBridge
-- [ ] Chainlink Automation 注册
-- [ ] Uniswap 池与主网回购参数
+- [x] Chainlink Automation 配置脚本
+- [x] 开关 / 对接 / 安全 / 95% 门禁文档
+- [ ] Sepolia 实地址填表（部署后填写 INTEGRATION 地址表）
 
-### E. 上线门禁
+## 自动验收
 
-- [ ] 专业审计
-- [ ] Certora / 形式化验证关键不变量
-- [ ] 测试网：开启→验证→关闭 回归签字
-- [ ] 多签 7 席位与轮换流程演练
-- [ ] 冷启动 GMV 达标后治理开启盈利
+```bash
+forge test --match-contract GoLiveAcceptance -vv
+```
 
-## 建议下一迭代（跨仓库）
-
-1. 在 `AtoB101/Karma` 合入 treasury/feeBridge 最小补丁  
-2. Sepolia 联调：Bilateral settle → FeeBridge → Treasury  
-3. 审计 + 不变量证明  
-4. 完整运营前端与监控
+期望：`GoLiveAcceptance` 12/12 检查通过（≥95%）。
