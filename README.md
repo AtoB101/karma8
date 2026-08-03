@@ -57,11 +57,14 @@ forge script script/DeployEconomy.s.sol:DeployEconomy --rpc-url $RPC_URL --broad
 - `ReferenceSettlementCore`：本地联调用的结算替身
 - 生产补丁说明：[`integrations/karma-core/PATCH.md`](integrations/karma-core/PATCH.md)（针对 `AtoB101/Karma`）
 
-本地飞轮验收：
+本地飞轮 / 95% 上线验收：
 
 ```bash
 forge test --match-contract FlywheelE2E -vv
+make golive   # GoLiveAcceptance + SecurityHardening + karma-core patch verify
 ```
+
+详见 [`docs/GO_LIVE_95.md`](docs/GO_LIVE_95.md)。
 
 本地 demo 部署：
 
