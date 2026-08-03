@@ -16,6 +16,10 @@ frontend/node_modules/
 # Forge doc book output (keep project docs/)
 docs/book/
 
+# Local deployment artifacts (keep directory)
+deployments/*.json
+!deployments/.gitkeep
+
 # Dotenv file
 .env
 .env.*

@@ -9,21 +9,22 @@
 
 ## karma-core 侧最小改动
 
-仅新增：
+详见 [`integrations/karma-core/PATCH.md`](../integrations/karma-core/PATCH.md)。
+
+推荐路径（本仓库已实现桥接合约）：
 
 ```solidity
-address public treasury; // karma-economy Treasury
+address public treasury;   // Treasury
+address public feeBridge;  // FeeBridge
+// settle 时:
+uint256 fee = FeeBridge(feeBridge).quoteFee(developer, amount); // revenue off => 0
+IERC20(usdc).approve(feeBridge, fee);
+FeeBridge(feeBridge).collectAndRecord(orderId, buyer, seller, developer, amount, fee);
 ```
 
-结算伪代码：
+本地可用 `ReferenceSettlementCore` 代替真实 Bilateral 做联调。
 
-```solidity
-uint256 fee = amount * 20 / 10_000; // 或通过 stake.feeBpsFor(developer) 读取动态费率
-IERC20(usdc).approve(treasury, fee);
-ITreasury(treasury).notifyFee(fee);
-```
-
-> 测试网 / 冷启动阶段：`feeBpsFor` 在 `revenueMode=false` 时返回 `0`，应保持免费接入。
+> 测试网 / 冷启动阶段：`quoteFee` / `feeBpsFor` 在 `revenueMode=false` 时返回 `0`，保持免费接入。
 
 ## karma-economy 只读接口
 
