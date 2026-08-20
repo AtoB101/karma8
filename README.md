@@ -92,5 +92,6 @@ cd frontend && npm i && npm run dev
 - [商业落地清单](docs/COMMERCIAL_READINESS.md)
 - [部署文档](docs/DEPLOYMENT.md)
 - [合约地址对接说明](docs/INTEGRATION.md)
+- [共建计分规格 v1](docs/cocreation/COCREATION_SCORE_V1.md)
 - [开关启停操作手册](docs/SWITCH_OPS.md)
 - [安全红线](docs/SECURITY.md)

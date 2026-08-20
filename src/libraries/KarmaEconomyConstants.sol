@@ -61,4 +61,25 @@ library KarmaEconomyConstants {
 
     /// @dev Arbitration
     uint256 internal constant ARBITRATOR_PANEL_SIZE = 15;
+
+    // ── Cocreation Score v1 ──────────────────────────────────────────────────
+    /// @dev Cumulative C_event weight required before ContributionNFT mint
+    uint256 internal constant MINT_THRESHOLD_WEIGHT = 200;
+    /// @dev R_contrib normalization reference (log1p curve)
+    uint256 internal constant COCREATION_C_REF = 5000;
+    /// @dev Decay windows
+    uint256 internal constant DECAY_HOT_DAYS = 90;
+    uint256 internal constant DECAY_WARM_DAYS = 365;
+    /// @dev Decay factors in BPS (10000 = 1.0)
+    uint256 internal constant DECAY_HOT_BPS = 10_000;
+    uint256 internal constant DECAY_WARM_BPS = 5_000;
+    uint256 internal constant DECAY_COLD_BPS = 2_000;
+
+    /// @dev Score mix BPS (must sum to 10_000 per role)
+    uint256 internal constant BUILDER_SETTLE_MIX_BPS = 2500;
+    uint256 internal constant BUILDER_CONTRIB_MIX_BPS = 6000;
+    uint256 internal constant BUILDER_STAKE_MIX_BPS = 1500;
+    uint256 internal constant EXPERT_SETTLE_MIX_BPS = 2000;
+    uint256 internal constant EXPERT_CONTRIB_MIX_BPS = 7000;
+    uint256 internal constant EXPERT_STAKE_MIX_BPS = 1000;
 }

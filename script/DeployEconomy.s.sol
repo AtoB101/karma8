@@ -17,6 +17,9 @@ import {DisputeArbitrator} from "../src/arbitration/DisputeArbitrator.sol";
 import {SettlementMirror} from "../src/integration/SettlementMirror.sol";
 import {FeeBridge} from "../src/integration/FeeBridge.sol";
 import {CoreEscrowAdapter} from "../src/integration/CoreEscrowAdapter.sol";
+import {ContributorRegistry} from "../src/cocreation/ContributorRegistry.sol";
+import {ContributionLedger} from "../src/cocreation/ContributionLedger.sol";
+import {CocreationScoreView} from "../src/cocreation/CocreationScoreView.sol";
 import {KarmaEconomyConstants} from "../src/libraries/KarmaEconomyConstants.sol";
 
 /// @notice Deploy full karma-economy stack with revenue mode OFF and karma-core bridge wiring.
@@ -44,7 +47,7 @@ contract DeployEconomy is Script {
         MultiSigWallet msig = new MultiSigWallet(owners);
         KarmaToken karma = new KarmaToken(address(msig));
         MultiTierStake stake = new MultiTierStake(address(karma), address(msig));
-        ContributionNFT nft = new ContributionNFT(address(msig));
+        ContributionNFT nft = new ContributionNFT(msg.sender); // temp minter → ContributionLedger
         KarmaVesting vesting = new KarmaVesting(address(karma), address(msig));
 
         // Phase-1: deployer is temporary controller/governance for bridge wiring.
@@ -72,6 +75,14 @@ contract DeployEconomy is Script {
         DisputeArbitrator arbitrator = new DisputeArbitrator(address(stake), deployer, address(mirror));
         KarmaGovernor governor = new KarmaGovernor(address(stake), address(treasury), address(msig));
 
+        // Cocreation Score v1
+        ContributorRegistry registry = new ContributorRegistry(deployer);
+        ContributionLedger ledger = new ContributionLedger(address(registry), address(nft), deployer, deployer);
+        CocreationScoreView scoreView =
+            new CocreationScoreView(address(ledger), address(stake), deployer, deployer);
+        nft.setMinter(address(ledger));
+        devPool.setRegistry(address(registry));
+
         // Wire fee / GMV / escrow bridge
         bridge.setCore(karmaCore);
         mirror.setReporter(address(bridge), true);
@@ -80,10 +91,15 @@ contract DeployEconomy is Script {
         arbitrator.setCoreEscrowAdapter(address(escrow));
         arbitrator.setGovernance(address(msig));
 
-        // Hand off temporary bridge roles to multisig
+        // Hand off temporary bridge / cocreation roles to multisig
         mirror.setGovernance(address(msig));
         bridge.setGovernance(address(msig));
         escrow.setGovernance(address(msig));
+        registry.setGovernance(address(msig));
+        ledger.setGovernance(address(msig));
+        ledger.setAccepter(address(msig));
+        scoreView.setGovernance(address(msig));
+        scoreView.setSettleOracle(address(msig));
 
         devPool.setTreasury(address(treasury));
         stakerPool.setTreasury(address(treasury));
@@ -109,6 +125,9 @@ contract DeployEconomy is Script {
         console2.log("SettlementMirror", address(mirror));
         console2.log("FeeBridge", address(bridge));
         console2.log("CoreEscrowAdapter", address(escrow));
+        console2.log("ContributorRegistry", address(registry));
+        console2.log("ContributionLedger", address(ledger));
+        console2.log("CocreationScoreView", address(scoreView));
         console2.log("KarmaCore(Bilateral)", karmaCore);
         console2.log("FEE_BPS", KarmaEconomyConstants.FEE_BPS);
         console2.log("enableRevenueMode", treasury.enableRevenueMode());

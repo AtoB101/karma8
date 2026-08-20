@@ -69,10 +69,17 @@ Bilateral.setFeeBridge(feeBridge);
 
 ```bash
 forge test --match-contract CoreLinkage -vv
+forge test --match-contract CocreationScore -vv
 forge test --match-contract FlywheelE2E -vv
 forge test --match-contract GoLiveAcceptance -vv
 bash integrations/karma-core/verify_patch.sh
 ```
+
+## 共建计分（Cocreation Score v1）
+
+链上模块：`ContributorRegistry` → `ContributionLedger` → `ContributionNFT` / `CocreationScoreView`。  
+规格与配置：[`docs/cocreation/COCREATION_SCORE_V1.md`](./cocreation/COCREATION_SCORE_V1.md)。  
+Karma 主仓剩余工作：[`integrations/karma-core/COCREATION_MAIN_PATCH.md`](../integrations/karma-core/COCREATION_MAIN_PATCH.md)。
 
 ## 不可变参数（链上常量）
 
@@ -104,5 +111,8 @@ KARMA_TOTAL_SUPPLY = 1e9 ether  // 零增发
 | SettlementMirror | |
 | FeeBridge | |
 | CoreEscrowAdapter | |
+| ContributorRegistry | |
+| ContributionLedger | |
+| CocreationScoreView | |
 | karma-core (Bilateral) | |
 | USDC | |
