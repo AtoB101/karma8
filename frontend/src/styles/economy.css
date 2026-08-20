@@ -154,3 +154,25 @@
 .karma-economy > *:nth-child(3) {
   animation-delay: 140ms;
 }
+
+/* Telegram MiniApp compact shell */
+html.karma-miniapp,
+html.karma-miniapp body {
+  background: #0f1410;
+}
+
+.karma-miniapp-shell {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2.5rem;
+  min-height: 100dvh;
+}
+
+.karma-miniapp-shell .karma-brand {
+  font-size: clamp(2rem, 8vw, 2.6rem);
+}
+
+.karma-miniapp-shell .karma-btn {
+  padding: 0.65rem 0.9rem;
+  font-size: 0.92rem;
+}

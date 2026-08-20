@@ -80,12 +80,16 @@ make demo-deploy   # writes deployments/local.json
 
 ## 前端
 
-`frontend/` 可嵌入组件 + Vite demo 控制台（质押 / 节点 / 治理 / 贡献 NFT）。  
+`frontend/` 可嵌入组件 + Vite demo 控制台（质押 / 节点 / 治理 / 贡献 NFT / **MiniApp 经济面**）。  
 盈利未开启时分红与手续费减免按钮置灰。
 
 ```bash
-cd frontend && npm i && npm run dev
+cd frontend && npm i && npm run sync-addresses && npm run dev
+# MiniApp 嵌入：http://localhost:5173/?view=miniapp
 ```
+
+双仓库分工：[`docs/MINIAPP_DUAL_REPO.md`](docs/MINIAPP_DUAL_REPO.md)  
+主仓实现简报：[`integrations/telegram-miniapp/MAIN_BRIEF.md`](integrations/telegram-miniapp/MAIN_BRIEF.md)
 
 ## 文档
 
@@ -93,5 +97,6 @@ cd frontend && npm i && npm run dev
 - [部署文档](docs/DEPLOYMENT.md)
 - [合约地址对接说明](docs/INTEGRATION.md)
 - [共建计分规格 v1](docs/cocreation/COCREATION_SCORE_V1.md)
+- [Telegram MiniApp 双仓分工](docs/MINIAPP_DUAL_REPO.md)
 - [开关启停操作手册](docs/SWITCH_OPS.md)
 - [安全红线](docs/SECURITY.md)

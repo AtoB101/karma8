@@ -1,0 +1,1484 @@
+KARMA TELEGRAM MINI APP + AGENT 商业网络
+完整实现流程方案 V1.0
+日期：2026-08-21
+
+============================================================
+一、产品终局
+============================================================
+
+Karma 不应被设计成一个单纯的 Telegram Mini App，而应设计成：
+
+“Agent 商业网络的身份、发现、信任、证据与结算基础设施”。
+
+Telegram Mini App 是第一业务入口；
+Karma 官网负责身份建立、钱包连接、权限配置、开发者与协议入口；
+Karma Network 负责 Agent Discovery、商业交易、Evidence、Verification、Risk、Settlement、Reputation。
+
+最终用户体验：
+
+第一次：
+官网 → 连接钱包 → 创建 Karma Identity → 设置支付权限 → 绑定 Telegram。
+
+以后：
+Telegram → 打开 Karma → 直接聊天表达需求 → Agent 找商家/Agent → 比价/协商 → 创建订单 → 授权或自动锁款 → 执行 → Evidence → Verification → Settlement → Reputation。
+
+商家体验：
+Telegram Mini App → 建立商业身份 → 认证 → 接入 Agent → 发布 Capability/Offer → 上线网络 → 被其他 Agent 发现 → 接单 → 执行 → 获得结算 → 累积信誉。
+
+============================================================
+二、总体架构
+============================================================
+
+用户
+│
+├── Karma 官网
+│     ├── Wallet Connect
+│     ├── SIWE / EIP-4361
+│     ├── Karma Identity
+│     ├── Wallet / Smart Account
+│     ├── Payment Policy
+│     └── Telegram Binding
+│
+└── Telegram
+      ├── Karma Bot
+      └── Karma Mini App
+            ├── Chat
+            ├── Activity
+            ├── Identity
+            ├── Merchant
+            └── Developer
+                    │
+                    ▼
+             Identity Gateway
+                    │
+             Session / Auth
+                    │
+             Karma API / SDK
+                    │
+       ┌────────────┼────────────┐
+       ▼            ▼            ▼
+   Identity     Discovery    Commerce
+       │            │            │
+       │       Capability      Intent
+       │       Agent Registry   Quote
+       │       Reputation       Negotiation
+       │                        Order
+       │                        Bill
+       │
+       └────────────┬────────────┘
+                    ▼
+                  Trust
+                    │
+       ┌────────────┼────────────┐
+       ▼            ▼            ▼
+    Evidence     Verification   Risk
+       │            │            │
+       └────────────┼────────────┘
+                    ▼
+               Settlement
+                    │
+                    ▼
+             Smart Contract
+                    │
+                    ▼
+                  USDC
+
+
+============================================================
+三、身份模型
+============================================================
+
+核心原则：
+
+Telegram ID ≠ Wallet Address。
+
+正确模型：
+
+Telegram Account
+       ↓
+Telegram Session
+       ↓
+Karma Identity
+       ├── Wallet
+       ├── Business
+       ├── Agent
+       └── Permission
+
+Karma Identity 是跨 Web、Telegram、Agent、未来其他客户端的统一身份。
+
+建议数据对象：
+
+1. karma_identity
+- identity_id
+- identity_type
+- status
+- created_at
+- metadata
+
+2. wallet
+- wallet_id
+- identity_id
+- chain
+- address
+- verification_status
+
+3. telegram_identity
+- telegram_user_id
+- identity_id
+- telegram_username
+- verified_at
+- status
+
+4. business_identity
+- business_id
+- owner_identity_id
+- legal_name
+- country
+- verification_level
+- status
+
+5. agent_identity
+- agent_id
+- owner_identity_id
+- endpoint
+- capabilities
+- status
+- reputation_id
+
+
+============================================================
+四、官网身份建立流程
+============================================================
+
+Step 1：用户进入 Karma 官网
+
+按钮：
+Connect Wallet
+
+Step 2：钱包连接
+
+支持目标链和 USDC 所在链。
+
+Step 3：生成登录 Challenge
+
+服务器生成：
+- domain
+- wallet
+- nonce
+- issued_at
+- expiration
+
+Step 4：用户钱包签名
+
+建议使用：
+- SIWE / EIP-4361
+- EIP-712
+
+Step 5：服务器验证签名
+
+验证成功后：
+Wallet Ownership = VERIFIED
+
+Step 6：创建 Karma Identity
+
+生成：
+Karma Identity ID
+
+Step 7：进入 Identity Dashboard
+
+显示：
+- Wallet
+- Identity
+- Agents
+- Business
+- Reputation
+- Permissions
+- Telegram
+
+
+============================================================
+五、钱包与支付权限
+============================================================
+
+不要设计成：
+“无限 Approve 给 Karma”。
+
+应该采用：
+最小权限 + Policy + Smart Account / 合约授权。
+
+建议三级模式：
+
+A. 手动确认
+每笔交易都由用户确认。
+
+B. 限额授权
+例如：
+Single Transaction ≤ $500
+Daily Limit ≤ $2,000
+
+C. Agent Policy
+例如：
+Logistics ≤ $1,000
+Hotel ≤ $300
+Software ≤ $500
+其他全部人工确认
+
+权限对象建议：
+- owner
+- token
+- chain
+- single_limit
+- daily_limit
+- category_rules
+- allowed_contracts
+- allowed_agents
+- expiry
+- emergency_revoke
+
+原则：
+Agent 只能在用户明确授权的范围内执行经济行为。
+
+
+============================================================
+六、Telegram 绑定流程
+============================================================
+
+Step 1：
+官网点击：
+Open Karma on Telegram / Connect Telegram
+
+Step 2：
+进入 Karma Bot
+
+Step 3：
+打开 Mini App
+
+Step 4：
+Telegram Mini App 获取 initData
+
+Step 5：
+后端严格验证 Telegram initData 签名
+
+绝不能直接相信前端传来的 Telegram User ID。
+
+Step 6：
+后端生成一次性 Challenge
+
+Step 7：
+用户确认绑定
+
+Step 8：
+绑定：
+telegram_identity → karma_identity
+
+Step 9：
+创建 Telegram Session
+
+以后用户进入 Mini App：
+
+Telegram initData
+→ 后端验证
+→ 找到 telegram_identity
+→ 找到 karma_identity
+→ 创建 Session
+→ 用户直接进入 Chat。
+
+
+============================================================
+七、Telegram Mini App 产品结构
+============================================================
+
+建议不要做成复杂 Web3 Dashboard。
+
+主要页面：
+
+1. Chat
+核心用户入口。
+
+2. Activity
+- Pending
+- Active
+- Completed
+- Disputed
+
+3. Identity
+- Wallet
+- Karma Identity
+- Reputation
+- Permissions
+- Connected Agents
+
+商家模式增加：
+- Offers
+- Orders
+- Business
+- Agent
+
+开发者模式增加：
+- API Keys
+- SDK
+- Agent
+- Webhook
+- Logs
+
+
+============================================================
+八、Chat-first 用户交互
+============================================================
+
+用户打开 Karma：
+
+KARMA
+
+What can I help you with?
+
+用户直接输入：
+
+“帮我找一个深圳工厂生产10万个手机壳，预算5万美元，30天内完成。”
+
+Karma Agent 不应该直接把自然语言交给 Discovery。
+
+第一步：
+Intent Extraction。
+
+例如：
+
+{
+  category: manufacturing,
+  capability: oem_phone_case,
+  location: Shenzhen,
+  quantity: 100000,
+  budget: 50000,
+  deadline: 30d
+}
+
+然后进入 Discovery。
+
+
+============================================================
+九、Capability Registry
+============================================================
+
+不要为每一个行业开发独立产品。
+
+建立 Universal Capability Schema。
+
+任何行业都抽象成：
+
+Identity
+Capability
+Offer
+Price
+Availability
+Requirement
+SLA
+Evidence
+Reputation
+Settlement
+
+例如物流：
+International Shipping
+Customs
+Warehouse
+
+法律：
+Company Registration
+Contract Review
+IP
+
+制造：
+OEM Manufacturing
+Quality Control
+Packaging
+
+AI：
+Agent Development
+Data Processing
+Automation
+
+商家可以：
+1. 从已有 Capability 选择
+2. 自己输入能力描述
+3. Karma AI 自动抽取和归类
+
+最终建立：
+Capability Graph
+
+
+============================================================
+十、Agent Registry
+============================================================
+
+每个 Agent 都需要：
+
+Agent ID
+Owner Identity
+Business
+Capabilities
+Endpoint
+Supported Protocol
+Pricing
+SLA
+Geography
+Availability
+Risk
+Reputation
+
+Agent 不一定必须是 Karma 自己生成的。
+
+支持：
+- Karma Agent
+- 自有 Agent
+- API Agent
+- OpenClaw
+- OpenManus
+- LangGraph
+- MCP
+- A2A
+- 自定义 Agent
+- 未来其他 Agent 标准
+
+Karma 的作用是把它们纳入统一商业协议。
+
+
+============================================================
+十一、商家入网完整流程
+============================================================
+
+商家进入：
+Telegram → Karma Mini App
+
+点击：
+“I’m a Merchant / Agent”
+
+Step 1：
+建立 Business Identity
+
+填写：
+- Company Name
+- Country
+- Website
+- Business Type
+- Contact
+
+Step 2：
+身份认证
+
+等级建议：
+Level 0 Unverified
+Level 1 Telegram Verified
+Level 2 Wallet Verified
+Level 3 Business Verified
+Level 4 Capability Verified
+Level 5 Karma Trusted
+
+Step 3：
+连接 Agent
+
+选项：
+- Connect Existing Agent
+- Connect API
+- Import Agent
+- Create Karma Agent
+
+Step 4：
+声明 Capability
+
+Step 5：
+创建 Offer
+
+Step 6：
+设置价格、交付、SLA
+
+Step 7：
+绑定收款钱包
+
+Step 8：
+设置 Settlement Policy
+
+Step 9：
+发布
+
+最终状态：
+ONLINE / VERIFIED
+
+
+============================================================
+十二、Offer 标准
+============================================================
+
+商家不能只写：
+“我做物流”。
+
+应该创建结构化 Offer。
+
+例如：
+
+Offer:
+China → Germany Shipping
+
+Service:
+International Shipping
+
+Origin:
+China
+
+Destination:
+Germany
+
+Weight:
+1-20 tons
+
+Delivery:
+7-15 days
+
+Price:
+From $500
+
+Currency:
+USDC
+
+Evidence:
+Tracking Number
+Shipping Documents
+Customs Documents
+Delivery Proof
+
+Settlement:
+After Verification
+
+这样 Agent 才能自动比较。
+
+
+============================================================
+十三、Discovery Engine
+============================================================
+
+用户 Intent：
+
+OEM
+Phone Case
+Shenzhen
+100,000 units
+Budget < $50,000
+Deadline 30 days
+
+Discovery Engine：
+
+1. Capability Matching
+2. Geography Matching
+3. Price Matching
+4. Availability
+5. SLA
+6. Reputation
+7. Risk
+8. Compliance
+9. Historical Execution
+10. Ranking
+
+返回：
+
+Agent A
+Match 98%
+
+Agent B
+Match 95%
+
+Agent C
+Match 91%
+
+Mini App 用 Card 呈现。
+
+Card：
+- Business
+- Agent
+- Verified
+- Match
+- Reputation
+- Completed
+- Price
+- SLA
+- Karma Protected
+
+
+============================================================
+十四、Agent-to-Agent 协商
+============================================================
+
+用户选择商家后：
+
+Buyer Agent
+↔
+Seller Agent
+
+示例：
+
+Buyer Agent：
+100,000 units.
+Need delivery within 30 days.
+
+Seller Agent：
+Price $42,000.
+Delivery 25 days.
+
+Buyer Agent：
+Can you do $40,000?
+
+Seller Agent：
+$40,500.
+
+Buyer Agent：
+Accepted.
+
+最后形成 Intent Package。
+
+
+============================================================
+十五、Intent Package
+============================================================
+
+必须结构化保存：
+
+- transaction_id
+- buyer_identity
+- seller_identity
+- buyer_agent
+- seller_agent
+- capability
+- quantity
+- price
+- currency
+- deadline
+- SLA
+- evidence_requirements
+- settlement_conditions
+- dispute_conditions
+- cancellation_conditions
+- timestamp
+
+双方签名。
+
+使用：
+EIP-712。
+
+生成：
+Intent Hash
+
+Intent Hash 是交易的唯一指纹。
+
+
+============================================================
+十六、Commerce Pipeline
+============================================================
+
+完整状态：
+
+DISCOVERED
+↓
+QUOTED
+↓
+NEGOTIATING
+↓
+AGREED
+↓
+SIGNED
+↓
+BILL_CREATED
+↓
+FUNDING
+↓
+LOCKED
+↓
+EXECUTING
+↓
+EVIDENCE_SUBMITTED
+↓
+VERIFYING
+↓
+VERIFIED
+↓
+SETTLED
+
+异常状态：
+
+DISPUTED
+FAILED
+CANCELLED
+REFUNDED
+
+
+============================================================
+十七、Bill
+============================================================
+
+双方签署 Intent 后：
+
+Create Bill
+
+Bill 包含：
+- Bill ID
+- Transaction ID
+- Buyer
+- Seller
+- Amount
+- Token
+- Chain
+- Evidence Rules
+- Settlement Rules
+- Expiry
+
+然后：
+Lock Funds
+
+
+============================================================
+十八、Lock USDC
+============================================================
+
+核心原则：
+Karma 不托管用户资金。
+
+资金按照智能合约和授权规则锁定。
+
+流程：
+
+Buyer
+↓
+Lock USDC
+↓
+Karma Contract
+↓
+Bill / Transaction ID
+↓
+Seller Execute
+
+需要保证：
+Intent Hash
+Bill
+Evidence Requirements
+Settlement Conditions
+Transaction ID
+
+彼此可关联。
+
+
+============================================================
+十九、执行阶段
+============================================================
+
+商家 Agent 开始执行。
+
+例如制造：
+
+Order Confirmed
+↓
+Material Purchased
+↓
+Production Started
+↓
+Production 50%
+↓
+Production Completed
+↓
+QC
+↓
+Shipping
+↓
+Delivery
+
+每个阶段产生 Evidence。
+
+
+============================================================
+二十、Evidence Bundle
+============================================================
+
+Evidence 可以包括：
+
+- Invoice
+- API Response
+- Tracking Number
+- Photo
+- Video
+- GPS
+- Document
+- Digital Signature
+- Timestamp
+- Third-party Confirmation
+
+每个 Evidence：
+- source
+- issuer
+- timestamp
+- hash
+- signature
+- type
+
+最终：
+Evidence Bundle
+
+生成：
+Evidence Bundle Hash
+
+你的现有 EvidenceBundleBuilder 可以直接承担这一层。
+
+
+============================================================
+二十一、Verification Engine
+============================================================
+
+输入：
+
+Intent
++
+Evidence
++
+Agent Identity
++
+Policy
++
+Risk
+
+输出：
+
+PASS
+PARTIAL
+FAIL
+DISPUTE
+
+你的现有 VerificationEngine 可以作为核心。
+
+Verification 不应该只判断：
+“有没有上传文件”。
+
+而应该判断：
+“Evidence 是否足以证明约定的商业结果已经完成”。
+
+
+============================================================
+二十二、Risk Engine
+============================================================
+
+风险因素：
+
+- Identity Risk
+- Wallet Risk
+- Agent Risk
+- Transaction Risk
+- Amount Risk
+- Capability Risk
+- Evidence Risk
+- Historical Dispute
+- Velocity
+- Suspicious Pattern
+
+输出：
+
+Risk Score
+
+例如：
+
+LOW
+MEDIUM
+HIGH
+BLOCKED
+
+
+============================================================
+二十三、Settlement
+============================================================
+
+Verification = PASS
+
+则：
+
+Locked USDC
+↓
+Settlement Contract
+↓
+Merchant Wallet
+
+Settlement 可支持：
+- Full Settlement
+- Partial Settlement
+- Milestone Settlement
+- Refund
+- Dispute Resolution
+
+Karma 收取交易服务费。
+
+
+============================================================
+二十四、Reputation
+============================================================
+
+不要允许商家自行填写信誉。
+
+信誉来自真实交易：
+
+Transaction
+↓
+Execution
+↓
+Evidence
+↓
+Verification
+↓
+Settlement
+↓
+Reputation Update
+
+可记录：
+
+- Completed
+- Success Rate
+- Dispute Rate
+- Average Delivery
+- Evidence Quality
+- Response Time
+- Cancellation Rate
+- Total Volume
+- Verified Transactions
+
+形成：
+Proof-based Reputation
+
+
+============================================================
+二十五、用户端完整示例
+============================================================
+
+用户：
+“帮我找一家德国公司注册 Agent。”
+
+Karma：
+“我找到 4 个符合条件的 Agent。”
+
+显示：
+- Verified
+- Reputation
+- Price
+- Delivery
+- Risk
+
+用户：
+“选信誉最高的。”
+
+Karma：
+选择 Agent。
+
+Agent：
+“费用 $380 USDC。”
+
+Karma：
+“交易金额 $380。资金将在服务完成并验证后结算。”
+
+用户：
+“确认。”
+
+如果超出 Policy：
+要求钱包签名。
+
+如果在 Policy：
+Agent 可以自动执行。
+
+然后：
+
+Payment Locked
+↓
+Service Started
+↓
+Evidence Submitted
+↓
+Verified
+↓
+$380 USDC Settled
+
+
+============================================================
+二十六、自动交易 Policy
+============================================================
+
+用户可以设置：
+
+Single Limit
+Daily Limit
+Monthly Limit
+
+Category：
+- Logistics
+- Travel
+- Software
+- Manufacturing
+- Data
+- etc.
+
+Allowed Agents：
+- Verified only
+- Reputation > 95
+- Specific Agents
+
+Settlement：
+- Manual
+- Automatic
+
+Emergency：
+- Revoke All
+- Freeze Agent
+- Freeze Payment
+
+这是 Agent 真正拥有经济自主权的前提。
+
+
+============================================================
+二十七、API / SDK 设计
+============================================================
+
+Karma 对 Agent 开放：
+
+1. Identity API
+2. Capability API
+3. Discovery API
+4. Quote API
+5. Negotiation API
+6. Intent API
+7. Order API
+8. Bill API
+9. Payment API
+10. Evidence API
+11. Verification API
+12. Settlement API
+13. Reputation API
+14. Webhook API
+
+SDK 提供：
+
+karma.identity
+karma.discovery
+karma.commerce
+karma.payment
+karma.evidence
+karma.verify
+karma.settlement
+karma.reputation
+
+
+============================================================
+二十八、推荐后端模块
+============================================================
+
+identity/
+- wallet
+- siwe
+- eip712
+- telegram
+
+session/
+- telegram_session
+- web_session
+- agent_session
+
+agent_registry/
+- agent
+- capability
+- endpoint
+- reputation
+
+discovery/
+- intent_parser
+- capability_matcher
+- ranking
+- search
+
+commerce/
+- offer
+- quote
+- negotiation
+- order
+- bill
+
+trust/
+- verification
+- evidence
+- risk
+- dispute
+
+settlement/
+- lock
+- confirm
+- payout
+- refund
+
+telegram/
+- bot
+- miniapp
+- webhook
+- auth
+
+
+============================================================
+二十九、与现有 Karma 项目的衔接
+============================================================
+
+你现有基础可以继续使用：
+
+- core/schemas.py
+- KarmaHookLayer
+- EvidenceBundleBuilder
+- VerificationEngine
+- SettlementEngine
+- OpenManus adapter
+- LangGraph workflow
+- SDK client
+- TaskRunner
+- FastAPI
+- JWT
+- API Key
+- Redis
+- PostgreSQL
+- MinIO
+- Ed25519
+- Celery
+- Docker Compose
+- 测试体系
+
+新增重点不是重新写 Karma 核心，而是增加：
+
+1. Telegram Identity Gateway
+2. Telegram Session
+3. Business Identity
+4. Capability Registry
+5. Offer Registry
+6. Agent Discovery
+7. Commerce / Order Pipeline
+8. Agent-to-Agent Negotiation
+9. Payment Policy
+10. Telegram Chat Interface
+
+
+============================================================
+三十、Telegram Mini App 前端结构
+============================================================
+
+首页：
+
+KARMA
+
+“What can I help you find?”
+
+Chat 输入框。
+
+主要 Tab：
+
+Chat
+Activity
+Identity
+
+Merchant Mode：
+
+Chat
+Orders
+Offers
+Agents
+Wallet
+Reputation
+
+Developer Mode：
+
+Agents
+API Keys
+SDK
+Webhooks
+Logs
+
+
+============================================================
+三十一、安全要求
+============================================================
+
+必须实现：
+
+1. Telegram initData 服务端验证
+2. Nonce 防重放
+3. Session 过期
+4. EIP-712 typed signing
+5. SIWE nonce
+6. Permission Policy
+7. Allowlist
+8. Spending Limit
+9. Daily Limit
+10. Contract Allowlist
+11. Agent Allowlist
+12. Emergency Revoke
+13. Rate Limit
+14. Redis Anti-Replay
+15. Webhook Signature
+16. Evidence Hash
+17. Intent Hash
+18. Transaction ID
+19. Audit Log
+
+绝不能：
+- 保存用户私钥
+- 无限授权 USDC
+- 只信任 Telegram User ID
+- 只依赖前端金额
+- 只依赖商家上传的 Evidence
+- 允许 Agent 绕过用户 Policy
+
+
+============================================================
+三十二、MVP 第一阶段
+============================================================
+
+不要一开始覆盖所有行业。
+
+先选择一个能够快速产生真实交易的垂直领域。
+
+优先建议：
+
+1. AI Agent 服务
+2. 软件开发
+3. Crypto / Web3 服务
+4. 跨境贸易
+5. 数字服务
+
+第一条真实交易链：
+
+Telegram
+↓
+Karma Identity
+↓
+Wallet
+↓
+Chat
+↓
+Intent
+↓
+Discovery
+↓
+Agent
+↓
+Quote
+↓
+Order
+↓
+Lock 100 USDC
+↓
+Execute
+↓
+Evidence
+↓
+Verification
+↓
+Settlement
+↓
+Reputation
+
+
+============================================================
+三十三、8 个开发 Sprint
+============================================================
+
+Sprint 1：Identity
+- Wallet Connect
+- SIWE
+- Karma Identity
+- Telegram Binding
+
+Sprint 2：Telegram
+- Bot
+- Mini App
+- initData Verification
+- Session
+- Deep Link
+
+Sprint 3：Agent Registry
+- Agent Registration
+- Capability
+- Business
+- Offer
+
+Sprint 4：Discovery
+- Intent Parser
+- Capability Search
+- Agent Ranking
+
+Sprint 5：Commerce
+- Quote
+- Negotiation
+- Intent Package
+- Order
+- Bill
+
+Sprint 6：Settlement
+- Policy
+- Lock
+- Confirm
+- Payout
+- Refund
+
+Sprint 7：Evidence
+- Evidence Bundle
+- Verification
+- Risk
+- Dispute
+
+Sprint 8：Reputation
+- Execution History
+- Reputation
+- Agent Profile
+- Public Verification
+
+
+============================================================
+三十四、上线验收标准
+============================================================
+
+用户：
+□ 官网连接钱包
+□ 创建 Identity
+□ 绑定 Telegram
+□ 打开 Mini App
+□ 自动识别 Identity
+□ Chat 提交需求
+□ Intent 自动生成
+□ Discovery 找到 Agent
+□ 显示结构化 Offer
+□ Agent-to-Agent 协商
+□ 生成 Intent
+□ 双方签名
+□ 创建 Bill
+□ Policy 检查
+□ Lock USDC
+□ 商家执行
+□ Evidence 上传
+□ Verification
+□ Settlement
+□ Reputation 更新
+
+商家：
+□ 注册 Business
+□ 身份认证
+□ 连接 Agent
+□ 注册 Capability
+□ 发布 Offer
+□ 设置价格
+□ 设置 SLA
+□ 绑定钱包
+□ 接单
+□ 查看订单
+□ 提交 Evidence
+□ 收款
+□ 查看 Reputation
+
+开发者：
+□ 创建 API Key
+□ Agent 注册
+□ Capability 注册
+□ Discovery API
+□ Commerce API
+□ Evidence API
+□ Settlement API
+□ Webhook
+□ Logs
+
+
+============================================================
+三十五、最终产品模型
+============================================================
+
+Karma 不应该成为：
+
+“另一个 Marketplace”。
+
+Karma 应该成为：
+
+“任何 Agent 都可以加入的全球商业网络”。
+
+Telegram 负责：
+- 用户入口
+- 聊天
+- 社交关系
+- Mini App
+- 日常交互
+
+官网负责：
+- 品牌
+- 身份
+- 钱包
+- 权限
+- 开发者
+- 协议
+
+Agent 负责：
+- 理解需求
+- Discovery
+- 协商
+- 执行
+
+Karma 负责：
+- Identity
+- Capability
+- Discovery
+- Intent
+- Evidence
+- Verification
+- Risk
+- Reputation
+- Settlement
+
+最终：
+
+用户不需要“找平台”。
+
+用户只需要：
+“告诉自己的 Agent 我需要什么。”
+
+商家不需要：
+“重新建立一个平台”。
+
+商家只需要：
+“把自己的商业能力注册进 Karma。”
+
+Agent 不需要：
+“认识所有商家”。
+
+Agent 只需要：
+“调用 Karma Discovery”。
+
+交易双方不需要：
+“彼此完全信任”。
+
+因为：
+Karma 提供 Identity + Evidence + Verification + Settlement。
+
+最终形成：
+
+User
+↓
+User Agent
+↓
+Karma Discovery
+↓
+Merchant Agent
+↓
+Intent
+↓
+Authorization
+↓
+Lock
+↓
+Execute
+↓
+Evidence
+↓
+Verify
+↓
+Settlement
+↓
+Reputation
+↓
+下一次交易
+
+这就是 Karma Agent Commerce Network 的完整闭环。

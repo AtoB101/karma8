@@ -24,3 +24,4 @@ deployments/*.json
 .env
 .env.*
 !.env.example
+frontend/dist/
