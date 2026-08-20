@@ -1,4 +1,4 @@
-.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage patch-verify cross-repo security-local
+.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage cocreation patch-verify cross-repo security-local
 
 build:
 	forge build
@@ -14,6 +14,7 @@ flywheel:
 
 golive:
 	forge test --match-contract CoreLinkage -vv
+	forge test --match-contract CocreationScore -vv
 	forge test --match-contract GoLiveAcceptance -vv
 	forge test --match-contract FlywheelE2E -vv
 	forge test --match-contract SecurityHardening -vv
@@ -23,6 +24,9 @@ linkage:
 	forge test --match-contract CoreLinkage -vv
 	bash integrations/karma-core/verify_patch.sh
 	bash integrations/karma-core/run_cross_repo_test.sh
+
+cocreation:
+	forge test --match-contract CocreationScore -vv
 
 cross-repo:
 	bash integrations/karma-core/run_cross_repo_test.sh
@@ -34,7 +38,7 @@ demo-deploy:
 	forge script script/DeployLocalDemo.s.sol:DeployLocalDemo --rpc-url http://127.0.0.1:8545 --broadcast --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 
 readiness:
-	@echo "See docs/GO_LIVE_95.md && docs/COMMERCIAL_READINESS.md"
+	@echo "See docs/GO_LIVE_95.md && docs/COMMERCIAL_READINESS.md && docs/cocreation/COCREATION_SCORE_V1.md"
 
 patch-verify:
 	bash integrations/karma-core/verify_patch.sh
