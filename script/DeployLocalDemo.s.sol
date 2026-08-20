@@ -77,8 +77,7 @@ contract DeployLocalDemo is Script {
 
         ContributorRegistry registry = new ContributorRegistry(deployer);
         ContributionLedger ledger = new ContributionLedger(address(registry), address(nft), deployer, deployer);
-        CocreationScoreView scoreView =
-            new CocreationScoreView(address(ledger), address(stake), deployer, deployer);
+        CocreationScoreView scoreView = new CocreationScoreView(address(ledger), address(stake), deployer, deployer);
         nft.setMinter(address(ledger));
         devPool.setRegistry(address(registry));
 

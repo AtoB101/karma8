@@ -142,13 +142,10 @@ contract ContributionLedger is ReentrancyGuard {
     }
 
     /// @notice Submit a contribution event (pending until accept).
-    function submit(
-        EventCode code,
-        IContributorRegistry.Role role,
-        bytes32 track,
-        Quality quality,
-        string calldata uri
-    ) external returns (uint256 eventId) {
+    function submit(EventCode code, IContributorRegistry.Role role, bytes32 track, Quality quality, string calldata uri)
+        external
+        returns (uint256 eventId)
+    {
         return _submit(msg.sender, code, role, track, quality, uri);
     }
 
@@ -196,8 +193,10 @@ contract ContributionLedger is ReentrancyGuard {
     /// @notice Mint soulbound NFT weight from unminted accepted contribution (threshold gated).
     function mintPending(address wallet, string calldata uri) external nonReentrant returns (uint256 tokenId) {
         if (!registry.isActive(wallet)) revert NotBound();
-        if (!registry.hasRole(wallet, IContributorRegistry.Role.BUILDER)
-            && !registry.hasRole(wallet, IContributorRegistry.Role.EXPERT)) {
+        if (
+            !registry.hasRole(wallet, IContributorRegistry.Role.BUILDER)
+                && !registry.hasRole(wallet, IContributorRegistry.Role.EXPERT)
+        ) {
             revert NotBound();
         }
         uint256 pending = pendingMintWeight(wallet);

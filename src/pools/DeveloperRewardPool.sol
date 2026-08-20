@@ -88,10 +88,9 @@ contract DeveloperRewardPool is IRewardPool, ReentrancyGuard {
     function registerDeveloper(address developer) external {
         require(developer != address(0), "zero");
         if (address(registry) != address(0)) {
-            if (
-                !registry.isActive(developer)
-                    || !registry.hasRole(developer, IContributorRegistry.Role.BUILDER)
-            ) revert NotBuilder();
+            if (!registry.isActive(developer) || !registry.hasRole(developer, IContributorRegistry.Role.BUILDER)) {
+                revert NotBuilder();
+            }
         }
         if (!isDeveloper[developer]) {
             isDeveloper[developer] = true;

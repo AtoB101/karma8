@@ -87,21 +87,25 @@ contract CocreationScoreView {
         rS = settleRep[wallet];
         rC = rContribOf(wallet);
         rK = rStakeOf(wallet);
-        score = (
-            rS * KarmaEconomyConstants.BUILDER_SETTLE_MIX_BPS
-                + rC * KarmaEconomyConstants.BUILDER_CONTRIB_MIX_BPS
-                + rK * KarmaEconomyConstants.BUILDER_STAKE_MIX_BPS
-        ) / 10_000;
+        score =
+            (rS
+                    * KarmaEconomyConstants.BUILDER_SETTLE_MIX_BPS
+                    + rC
+                    * KarmaEconomyConstants.BUILDER_CONTRIB_MIX_BPS
+                    + rK
+                    * KarmaEconomyConstants.BUILDER_STAKE_MIX_BPS) / 10_000;
     }
 
     function scoreExpert(address wallet) external view returns (uint256 score, uint256 rS, uint256 rC, uint256 rK) {
         rS = settleRep[wallet];
         rC = rContribOf(wallet);
         rK = rStakeOf(wallet);
-        score = (
-            rS * KarmaEconomyConstants.EXPERT_SETTLE_MIX_BPS
-                + rC * KarmaEconomyConstants.EXPERT_CONTRIB_MIX_BPS
-                + rK * KarmaEconomyConstants.EXPERT_STAKE_MIX_BPS
-        ) / 10_000;
+        score =
+            (rS
+                    * KarmaEconomyConstants.EXPERT_SETTLE_MIX_BPS
+                    + rC
+                    * KarmaEconomyConstants.EXPERT_CONTRIB_MIX_BPS
+                    + rK
+                    * KarmaEconomyConstants.EXPERT_STAKE_MIX_BPS) / 10_000;
     }
 }

@@ -31,7 +31,8 @@ contract MockBilateralWithFeeHook {
 
     function settle(bytes32 orderId, address buyer, address seller, address developer, uint256 amountUsdc) external {
         require(usdc.transferFrom(msg.sender, address(this), amountUsdc), "pull");
-        uint256 fee = BilateralFeeHook.collectOnSettle(feeBridge, address(usdc), orderId, buyer, seller, developer, amountUsdc);
+        uint256 fee =
+            BilateralFeeHook.collectOnSettle(feeBridge, address(usdc), orderId, buyer, seller, developer, amountUsdc);
         uint256 payout = amountUsdc - fee;
         if (payout > 0) require(usdc.transfer(seller, payout), "payout");
     }
