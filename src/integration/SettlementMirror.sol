@@ -57,15 +57,19 @@ contract SettlementMirror is IKarmaCoreView {
     }
 
     /// @notice Called by karma-core bridge after a successful settle (+ optional fee).
+    /// @dev Self-deal (buyer==seller) still records the bill but does NOT credit developer GMV.
     function recordBill(BillSnapshot calldata bill) external onlyReporter {
         require(bill.orderId != bytes32(0), "order");
         _bills[bill.orderId] = bill;
 
-        uint64 day = uint64(bill.settledAt / 1 days);
-        lifetimeDeveloperGmv[bill.developer] += bill.amountUsdc;
-        lifetimeTotalGmv += bill.amountUsdc;
-        developerGmvByDay[bill.developer][day] += bill.amountUsdc;
-        totalGmvByDay[day] += bill.amountUsdc;
+        bool creditGmv = bill.amountUsdc > 0 && bill.developer != address(0) && bill.buyer != bill.seller;
+        if (creditGmv) {
+            uint64 day = uint64(bill.settledAt / 1 days);
+            lifetimeDeveloperGmv[bill.developer] += bill.amountUsdc;
+            lifetimeTotalGmv += bill.amountUsdc;
+            developerGmvByDay[bill.developer][day] += bill.amountUsdc;
+            totalGmvByDay[day] += bill.amountUsdc;
+        }
 
         emit BillRecorded(bill.orderId, bill.developer, bill.amountUsdc, bill.feeUsdc);
     }

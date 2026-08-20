@@ -21,6 +21,9 @@ import {SettlementMirror} from "../src/integration/SettlementMirror.sol";
 import {FeeBridge} from "../src/integration/FeeBridge.sol";
 import {ReferenceSettlementCore} from "../src/integration/ReferenceSettlementCore.sol";
 import {CoreEscrowAdapter} from "../src/integration/CoreEscrowAdapter.sol";
+import {ContributorRegistry} from "../src/cocreation/ContributorRegistry.sol";
+import {ContributionLedger} from "../src/cocreation/ContributionLedger.sol";
+import {CocreationScoreView} from "../src/cocreation/CocreationScoreView.sol";
 import {KarmaEconomyConstants} from "../src/libraries/KarmaEconomyConstants.sol";
 
 /// @notice One-shot local/demo deployment writing deployments/local.json
@@ -72,6 +75,12 @@ contract DeployLocalDemo is Script {
         DisputeArbitrator arbitrator = new DisputeArbitrator(address(stake), deployer, address(mirror));
         KarmaGovernor governor = new KarmaGovernor(address(stake), address(treasury), deployer);
 
+        ContributorRegistry registry = new ContributorRegistry(deployer);
+        ContributionLedger ledger = new ContributionLedger(address(registry), address(nft), deployer, deployer);
+        CocreationScoreView scoreView = new CocreationScoreView(address(ledger), address(stake), deployer, deployer);
+        nft.setMinter(address(ledger));
+        devPool.setRegistry(address(registry));
+
         // Wire
         devPool.setTreasury(address(treasury));
         stakerPool.setTreasury(address(treasury));
@@ -81,6 +90,8 @@ contract DeployLocalDemo is Script {
         mirror.setReporter(address(bridge), true);
         mirror.setReporter(address(escrow), true);
         escrow.setArbitrator(address(arbitrator));
+        escrow.setCoreTarget(address(core));
+        core.setEscrowController(address(escrow));
         arbitrator.setNodePool(address(verifierPool));
         arbitrator.setCoreEscrowAdapter(address(escrow));
         verifierPool.setArbitrator(address(arbitrator));
@@ -112,6 +123,9 @@ contract DeployLocalDemo is Script {
         vm.serializeAddress(json, "feeBridge", address(bridge));
         vm.serializeAddress(json, "referenceCore", address(core));
         vm.serializeAddress(json, "escrowAdapter", address(escrow));
+        vm.serializeAddress(json, "contributorRegistry", address(registry));
+        vm.serializeAddress(json, "contributionLedger", address(ledger));
+        vm.serializeAddress(json, "cocreationScoreView", address(scoreView));
         vm.serializeBool(json, "enableRevenueMode", treasury.enableRevenueMode());
         vm.serializeUint(json, "feeBps", KarmaEconomyConstants.FEE_BPS);
         string memory out = vm.serializeUint(json, "chainId", block.chainid);
@@ -120,6 +134,7 @@ contract DeployLocalDemo is Script {
         console2.log("Wrote deployments/local.json");
         console2.log("Treasury", address(treasury));
         console2.log("ReferenceCore", address(core));
+        console2.log("ContributionLedger", address(ledger));
         console2.log("enableRevenueMode", treasury.enableRevenueMode());
 
         vm.stopBroadcast();

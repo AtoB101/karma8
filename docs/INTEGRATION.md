@@ -4,38 +4,82 @@
 
 | 方向 | 允许操作 | 禁止操作 |
 |------|----------|----------|
-| karma-core → karma-economy | 向 `Treasury` 转入 USDC 手续费 | 写入任何 economy 状态（除转账/notifyFee） |
-| karma-economy → karma-core | 调用 `IKarmaCoreView` 只读视图 | 修改核心结算状态 |
+| karma-core → karma-economy | 经 `FeeBridge.collectAndRecord` 转入 USDC 手续费并镜像账单 | 写入任何其他 economy 状态 |
+| karma-economy → karma-core | 调用 `IKarmaCoreView` 只读视图（部署为 `SettlementMirror`） | 修改核心结算状态（除可选 escrow 回调） |
+
+## 推荐联动拓扑
+
+```text
+AtoB101/Karma KarmaBilateral
+        │ settle → quoteFee / collectAndRecord
+        ▼
+   FeeBridge ──notifyFee──► Treasury
+        │
+        └──recordBill──► SettlementMirror (IKarmaCoreView)
+                              ▲
+          DeveloperRewardPool ┘
+          DisputeArbitrator ──► CoreEscrowAdapter ──► (optional) core escrow target
+```
 
 ## karma-core 侧最小改动
 
-详见 [`integrations/karma-core/PATCH.md`](../integrations/karma-core/PATCH.md)。
+详见 [`integrations/karma-core/PATCH.md`](../integrations/karma-core/PATCH.md) 与可应用 diff：
 
-推荐路径（本仓库已实现桥接合约）：
+`integrations/karma-core/patches/0001-add-treasury-feebridge.diff`
 
-```solidity
-address public treasury;   // Treasury
-address public feeBridge;  // FeeBridge
-// settle 时:
-uint256 fee = FeeBridge(feeBridge).quoteFee(developer, amount); // revenue off => 0
-IERC20(usdc).approve(feeBridge, fee);
-FeeBridge(feeBridge).collectAndRecord(orderId, buyer, seller, developer, amount, fee);
+```bash
+# 在 AtoB101/Karma 仓库
+git apply --check path/to/karma8/integrations/karma-core/patches/0001-add-treasury-feebridge.diff
+git apply path/to/karma8/integrations/karma-core/patches/0001-add-treasury-feebridge.diff
 ```
 
-本地可用 `ReferenceSettlementCore` 代替真实 Bilateral 做联调。
+接线：
 
-> 测试网 / 冷启动阶段：`quoteFee` / `feeBpsFor` 在 `revenueMode=false` 时返回 `0`，保持免费接入。
+```solidity
+Bilateral.setTreasury(treasury);
+Bilateral.setFeeBridge(feeBridge);
+// FeeBridge.core 必须是 Bilateral（DeployEconomy / WireKarmaCore 已设置）
+```
+
+结算时 Bilateral 会：
+
+1. `quoteFee(developer, amount)` — `enableRevenueMode=false` 时为 0  
+2. `collectAndRecord(...)` — 手续费转入 Treasury，GMV 写入 SettlementMirror  
+
+本地可用 `ReferenceSettlementCore` + `BilateralFeeHook` 代替真实 Bilateral（`CoreLinkage` / `FlywheelE2E`）。
 
 ## karma-economy 只读接口
 
-`IKarmaCoreView`（`src/interfaces/IKarmaCoreView.sol`）：
+`IKarmaCoreView`（由 `SettlementMirror` 实现）：
 
 - `getBillSnapshot(orderId)`
 - `getDeveloperGmv(developer, fromTs, toTs)`
 - `getTotalGmv(fromTs, toTs)`
 - `isOrderFrozen(orderId)`
 
-`DisputeArbitrator` 可通过可选 `coreEscrowAdapter` 回调 `freezeOrder` / `releaseToSeller` / `refundToBuyer`；该适配器属于 karma-core 外围模块，非本仓库强制依赖。
+`DisputeArbitrator` 可通过 `CoreEscrowAdapter` 回调 `freezeOrder` / `releaseToSeller` / `refundToBuyer`；适配器会更新 mirror，并可选转发到 `ICoreEscrowTarget`。
+
+## 部署与重接线
+
+1. `forge script script/DeployEconomy.s.sol` — 部署经济栈 + FeeBridge/Mirror/Escrow，`FeeBridge.setCore(KARMA_CORE_ADDRESS)`  
+2. 在 Karma 应用补丁后：`Bilateral.setTreasury` + `setFeeBridge`  
+3. 如需重配：`forge script script/WireKarmaCore.s.sol`
+
+验收：
+
+```bash
+forge test --match-contract CoreLinkage -vv
+forge test --match-contract CocreationScore -vv
+forge test --match-contract FlywheelE2E -vv
+forge test --match-contract GoLiveAcceptance -vv
+bash integrations/karma-core/verify_patch.sh
+```
+
+## 共建计分（Cocreation Score v1）
+
+链上模块：`ContributorRegistry` → `ContributionLedger` → `ContributionNFT` / `CocreationScoreView`。  
+规格与配置：[`docs/cocreation/COCREATION_SCORE_V1.md`](./cocreation/COCREATION_SCORE_V1.md)。  
+Karma 主仓剩余工作：[`integrations/karma-core/COCREATION_MAIN_PATCH.md`](../integrations/karma-core/COCREATION_MAIN_PATCH.md)。
 
 ## 不可变参数（链上常量）
 
@@ -47,21 +91,6 @@ VERIFIER_POOL_PCT = 20
 BUYBURN_POOL_PCT = 10
 KARMA_TOTAL_SUPPLY = 1e9 ether  // 零增发
 ```
-
-读取方式：
-
-- `Treasury.feeBps()`
-- `Treasury.splitRatios()`
-
-## 前端只读数据源
-
-| 页面 | 主要调用 |
-|------|----------|
-| 质押 | `MultiTierStake.positions` / `votingWeight` / `feeBpsFor` / `tierOf` |
-| 节点注册 | `stake` with `Tier.Verifier`；`isActiveVerifier` |
-| 治理 | `KarmaGovernor.proposals` / `state` / `vote` |
-| 贡献 NFT | `ContributionNFT.totalWeightOf` / `tokenURI` |
-| 分红领取 | 各 Pool `claimableOf` / `earned`；需先读 `Treasury.enableRevenueMode` |
 
 ## 地址登记表（部署后填写）
 
@@ -79,5 +108,11 @@ KARMA_TOTAL_SUPPLY = 1e9 ether  // 零增发
 | AutoBuyBurn | |
 | DisputeArbitrator | |
 | KarmaGovernor | |
-| karma-core | |
+| SettlementMirror | |
+| FeeBridge | |
+| CoreEscrowAdapter | |
+| ContributorRegistry | |
+| ContributionLedger | |
+| CocreationScoreView | |
+| karma-core (Bilateral) | |
 | USDC | |

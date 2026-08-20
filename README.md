@@ -50,16 +50,19 @@ forge script script/DeployEconomy.s.sol:DeployEconomy --rpc-url $RPC_URL --broad
 
 ## 与 karma-core 对接
 
-本仓库提供经济侧桥接：
+本仓库提供经济侧桥接（`DeployEconomy` 已默认部署并接线）：
 
 - `FeeBridge`：唯一收费写入路径（USDC → Treasury + GMV 镜像）
 - `SettlementMirror`：账单/GMV 只读视图（`IKarmaCoreView`）
+- `CoreEscrowAdapter`：仲裁冻结/放款回调（可选转发到 core escrow）
 - `ReferenceSettlementCore`：本地联调用的结算替身
-- 生产补丁说明：[`integrations/karma-core/PATCH.md`](integrations/karma-core/PATCH.md)（针对 `AtoB101/Karma`）
+- 生产补丁（unified diff）：[`integrations/karma-core/patches/0001-add-treasury-feebridge.diff`](integrations/karma-core/patches/0001-add-treasury-feebridge.diff)
+- 接线脚本：`script/WireKarmaCore.s.sol`
 
 本地飞轮 / 95% 上线验收：
 
 ```bash
+forge test --match-contract CoreLinkage -vv
 forge test --match-contract FlywheelE2E -vv
 make golive   # GoLiveAcceptance + SecurityHardening + karma-core patch verify
 ```
@@ -89,5 +92,6 @@ cd frontend && npm i && npm run dev
 - [商业落地清单](docs/COMMERCIAL_READINESS.md)
 - [部署文档](docs/DEPLOYMENT.md)
 - [合约地址对接说明](docs/INTEGRATION.md)
+- [共建计分规格 v1](docs/cocreation/COCREATION_SCORE_V1.md)
 - [开关启停操作手册](docs/SWITCH_OPS.md)
 - [安全红线](docs/SECURITY.md)

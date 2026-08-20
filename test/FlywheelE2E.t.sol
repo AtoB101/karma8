@@ -38,6 +38,8 @@ contract FlywheelE2ETest is EconomyFixture {
         mirror.setReporter(address(bridge), true);
         mirror.setReporter(address(escrow), true);
         escrow.setArbitrator(address(arbitrator));
+        escrow.setCoreTarget(address(core));
+        core.setEscrowController(address(escrow));
         arbitrator.setKarmaCore(address(mirror));
         arbitrator.setCoreEscrowAdapter(address(escrow));
         treasury.setKarmaCore(address(core));
