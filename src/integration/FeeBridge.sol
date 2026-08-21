@@ -32,6 +32,7 @@ contract FeeBridge is ReentrancyGuard {
 
     error Unauthorized();
     error RevenueOff();
+    error FeeMismatch();
 
     modifier onlyCore() {
         if (msg.sender != core) revert Unauthorized();
@@ -77,11 +78,17 @@ contract FeeBridge is ReentrancyGuard {
     }
 
     /// @notice Quote fee for a developer using stake tier discounts when revenue mode is on.
+    /// @dev Source of truth is Treasury.enableRevenueMode. If stake.revenueMode is desynced/off,
+    ///      fall back to base FEE_BPS (do not silently quote 0 for everyone).
     function quoteFeeBps(address developer) public view returns (uint256) {
         if (!treasury.enableRevenueMode()) return 0;
         if (address(stake) != address(0)) {
-            try stake.feeBpsFor(developer) returns (uint256 bps) {
-                return bps;
+            try stake.revenueMode() returns (bool stakeOn) {
+                if (stakeOn) {
+                    try stake.feeBpsFor(developer) returns (uint256 bps) {
+                        return bps;
+                    } catch {}
+                }
             } catch {}
         }
         return KarmaEconomyConstants.FEE_BPS;
@@ -93,6 +100,7 @@ contract FeeBridge is ReentrancyGuard {
     }
 
     /// @notice karma-core settlement hook: pull fee from core escrow wallet and forward to Treasury.
+    /// @dev `feeUsdc` MUST equal `quoteFee(developer, amountUsdc)` (0 when revenue off).
     function collectAndRecord(
         bytes32 orderId,
         address buyer,
@@ -101,6 +109,9 @@ contract FeeBridge is ReentrancyGuard {
         uint256 amountUsdc,
         uint256 feeUsdc
     ) external onlyCore nonReentrant {
+        uint256 expected = quoteFee(developer, amountUsdc);
+        if (feeUsdc != expected) revert FeeMismatch();
+
         if (feeUsdc > 0) {
             if (!treasury.enableRevenueMode()) revert RevenueOff();
             usdc.safeTransferFrom(msg.sender, address(this), feeUsdc);

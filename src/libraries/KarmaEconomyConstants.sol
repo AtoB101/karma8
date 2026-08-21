@@ -46,7 +46,9 @@ library KarmaEconomyConstants {
 
     /// @dev Governance
     uint256 internal constant VOTING_PERIOD = 7 days;
-    uint256 internal constant QUORUM_BPS = 5100; // 51%
+    uint256 internal constant QUORUM_BPS = 5100; // 51% of votes cast must be FOR
+    /// @dev Minimum participation: cast votes must be >= this share of totalVotingWeight
+    uint256 internal constant QUORUM_PARTICIPATION_BPS = 1000; // 10%
 
     /// @dev Multisig thresholds
     uint256 internal constant MULTISIG_OWNERS = 7;

@@ -90,7 +90,8 @@ contract MultiSigWallet {
     function executeTransaction(uint256 txId) external onlyOwner {
         Transaction storage t = transactions[txId];
         if (t.executed) revert AlreadyExecuted();
-        uint256 need = t.kind == OpKind.Controller
+        // Self-calls (e.g. rotateOwner) always require controller threshold — OpKind cannot downgrade.
+        uint256 need = (t.to == address(this) || t.kind == OpKind.Controller)
             ? KarmaEconomyConstants.MULTISIG_CONTROLLER_THRESHOLD
             : KarmaEconomyConstants.MULTISIG_EXEC_THRESHOLD;
         if (t.confirmations < need) revert ThresholdNotMet();

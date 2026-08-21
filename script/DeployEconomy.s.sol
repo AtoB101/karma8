@@ -100,13 +100,17 @@ contract DeployEconomy is Script {
         scoreView.setGovernance(address(msig));
         scoreView.setSettleOracle(address(msig));
 
+        // Configure pool arbitrator while deployer is still temporary treasury on VerifierNodePool
+        verifierPool.setArbitrator(address(arbitrator));
+        arbitrator.setNodePool(address(verifierPool));
+
         devPool.setTreasury(address(treasury));
         stakerPool.setTreasury(address(treasury));
         verifierPool.setTreasury(address(treasury));
         buyBurn.setTreasury(address(treasury));
 
         // Post-deploy (via 7/7 multisig): treasury.setGovernance(governor), stake.setGovernance(governor),
-        // stake.setArbitrator(arbitrator), arbitrator.setNodePool(verifierPool), vesting.setStake(stake).
+        // stake.setArbitrator(arbitrator), vesting.setStake(stake).
         // On Karma Bilateral (after applying feebridge patch): setTreasury + setFeeBridge.
 
         console2.log("MultiSig", address(msig));

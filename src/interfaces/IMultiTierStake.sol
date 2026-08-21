@@ -20,4 +20,5 @@ interface IMultiTierStake {
     function verifierAt(uint256 index) external view returns (address);
     function totalVotingWeight() external view returns (uint256);
     function feeBpsFor(address account) external view returns (uint256);
+    function revenueMode() external view returns (bool);
 }

@@ -165,9 +165,10 @@ contract KarmaVesting is ReentrancyGuard {
         }
 
         if (g.category == Category.Investor) {
-            // After unlock, must stake 7 days before extract
+            // After unlock, must stake continuously through the 7-day hold window
             uint64 ready = investorStakeReadyAt[g.beneficiary];
             if (ready == 0 || block.timestamp < ready) revert InvestorHold();
+            if (address(stake) == address(0) || stake.stakeOf(g.beneficiary) == 0) revert InvestorHold();
         }
 
         if (g.category == Category.TreasuryReserve) {
@@ -179,9 +180,10 @@ contract KarmaVesting is ReentrancyGuard {
         emit Claimed(id, g.beneficiary, amount);
     }
 
-    /// @notice Investor marks stake start; claim allowed after 7 days.
+    /// @notice Investor marks stake start; claim allowed after 7 days while still staked.
     function markInvestorStakeHold(address investor) external {
         require(msg.sender == investor || msg.sender == address(stake), "auth");
+        require(address(stake) != address(0) && stake.stakeOf(investor) > 0, "stake");
         investorStakeReadyAt[investor] = uint64(block.timestamp + 7 days);
     }
 

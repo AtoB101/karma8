@@ -112,5 +112,6 @@ cd frontend && npm run dev
 - [Telegram MiniApp 双仓分工](docs/MINIAPP_DUAL_REPO.md)
 - [Economy runtime / 冷启动](docs/ECONOMY_RUNTIME.md)
 - [karma8 联调清单 A–G](integrations/telegram-miniapp/KARMA8_CHECKLIST.md)
+- [Security audit 2026-08-21](docs/security/SECURITY_AUDIT_2026-08-21.md)
 - [开关启停操作手册](docs/SWITCH_OPS.md)
 - [安全红线](docs/SECURITY.md)

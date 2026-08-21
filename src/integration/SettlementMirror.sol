@@ -58,8 +58,10 @@ contract SettlementMirror is IKarmaCoreView {
 
     /// @notice Called by karma-core bridge after a successful settle (+ optional fee).
     /// @dev Self-deal (buyer==seller) still records the bill but does NOT credit developer GMV.
+    ///      Replay of the same orderId is rejected (idempotent) to prevent GMV inflation.
     function recordBill(BillSnapshot calldata bill) external onlyReporter {
         require(bill.orderId != bytes32(0), "order");
+        require(_bills[bill.orderId].orderId == bytes32(0), "exists");
         _bills[bill.orderId] = bill;
 
         bool creditGmv = bill.amountUsdc > 0 && bill.developer != address(0) && bill.buyer != bill.seller;

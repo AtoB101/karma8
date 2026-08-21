@@ -59,3 +59,9 @@ patch-verify:
 
 security-local:
 	forge test --match-contract SecurityHardening -vv
+	forge test --match-contract SecurityAuditRegression -vv
+
+security-audit:
+	forge test --match-contract SecurityHardening -vv
+	forge test --match-contract SecurityAuditRegression -vv
+	@echo "See docs/security/SECURITY_AUDIT_2026-08-21.md"
