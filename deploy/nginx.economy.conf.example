@@ -1,0 +1,29 @@
+# Example nginx site for karma8 economy frontend (production)
+# Point root at `frontend/dist` after `npm run build`.
+
+server {
+  listen 443 ssl http2;
+  server_name economy.example.com;
+
+  # ssl_certificate     /etc/letsencrypt/live/economy.example.com/fullchain.pem;
+  # ssl_certificate_key /etc/letsencrypt/live/economy.example.com/privkey.pem;
+
+  root /var/www/karma8-economy;
+  index index.html;
+
+  # Telegram / main MiniApp parents — edit before go-live
+  set $frame_ancestors "'self' https://web.telegram.org https://webk.telegram.org https://webz.telegram.org https://YOUR_MAIN_MINIAPP_HOST";
+
+  add_header X-Content-Type-Options nosniff always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  add_header Content-Security-Policy "frame-ancestors $frame_ancestors; default-src 'self'; script-src 'self' 'unsafe-inline' https://telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'" always;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  location = /economy-surface.json {
+    add_header Access-Control-Allow-Origin "https://YOUR_MAIN_MINIAPP_HOST" always;
+    add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
+  }
+}

@@ -60,8 +60,7 @@ contract CocreationScoreTest is EconomyFixture {
         bytes32[] memory tracks = new bytes32[](2);
         tracks[0] = trackDigital;
         tracks[1] = trackHighRisk;
-        vm.prank(wallet);
-        registry.register(roles, tracks);
+        registry.registerFor(wallet, roles, tracks);
     }
 
     function _accepted(uint256 id) internal view returns (bool accepted) {

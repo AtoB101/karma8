@@ -1,0 +1,7 @@
+# Cloudflare Pages / similar static hosts — production CSP for Telegram embed
+# Replace PARENT origins with your real MiniApp + Telegram web hosts.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: frame-ancestors 'self' https://web.telegram.org https://webk.telegram.org https://webz.telegram.org https://YOUR_MAIN_MINIAPP_HOST; default-src 'self'; script-src 'self' 'unsafe-inline' https://telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'
+*/

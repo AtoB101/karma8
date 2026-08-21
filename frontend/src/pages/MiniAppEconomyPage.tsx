@@ -19,6 +19,7 @@ import {
 } from "../lib/abis";
 import { bootstrapTelegramWebApp } from "../lib/telegram";
 import { useRevenueMode } from "../hooks/useRevenueMode";
+import { useWriteGate } from "../hooks/useWriteGate";
 import "../styles/economy.css";
 
 type SubTab = "status" | "wallet" | "rewards" | "contrib";
@@ -47,6 +48,7 @@ export function MiniAppEconomyPage({ addresses }: Props) {
   const { connect, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const { enabled: revenueOn } = useRevenueMode(addresses.treasury);
+  const { canWrite, reason: writeBlock } = useWriteGate(addresses);
   const { writeContract, isPending: claiming } = useWriteContract();
 
   useEffect(() => {
@@ -156,6 +158,7 @@ export function MiniAppEconomyPage({ addresses }: Props) {
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("scenario") : null;
 
   const onClaim = () => {
+    if (!canWrite || !revenueOn) return;
     writeContract({
       address: addresses.stakerPool,
       abi: stakerPoolAbi,
@@ -308,11 +311,12 @@ export function MiniAppEconomyPage({ addresses }: Props) {
           <button
             className={`karma-btn ${revenueOn ? "karma-btn-primary" : "karma-btn-locked"}`}
             type="button"
-            disabled={!revenueOn || claiming || !earned.data}
+            disabled={!revenueOn || claiming || !earned.data || !canWrite}
             onClick={onClaim}
           >
             {revenueOn ? "领取质押分红" : "盈利未开启 · 分红锁定"}
           </button>
+          {writeBlock && <p className="karma-hint">{writeBlock}</p>}
         </section>
       )}
 

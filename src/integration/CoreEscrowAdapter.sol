@@ -6,9 +6,8 @@ import {ICoreEscrowTarget} from "../interfaces/ICoreEscrowTarget.sol";
 
 /// @title CoreEscrowAdapter
 /// @notice Freeze/release hooks used by DisputeArbitrator.
-/// @dev Updates SettlementMirror freeze flags, optionally forwards to a karma-core
-///      escrow target (ReferenceSettlementCore or a Bilateral-compatible wrapper),
-///      and always emits actionable events for off-chain/core executors.
+/// @dev Updates SettlementMirror freeze flags and forwards to a karma-core escrow target.
+///      Failures revert (no silent success events).
 contract CoreEscrowAdapter {
     SettlementMirror public immutable mirror;
     address public arbitrator;
@@ -23,6 +22,7 @@ contract CoreEscrowAdapter {
     event ArbitratorUpdated(address indexed arbitrator);
 
     error Unauthorized();
+    error CoreTargetRequired();
 
     modifier onlyArbitrator() {
         if (msg.sender != arbitrator) revert Unauthorized();
@@ -57,26 +57,23 @@ contract CoreEscrowAdapter {
     }
 
     function freezeOrder(bytes32 orderId) external onlyArbitrator {
-        try mirror.setFrozen(orderId, true) {} catch {}
-        if (address(coreTarget) != address(0)) {
-            try coreTarget.freezeOrder(orderId) {} catch {}
-        }
+        if (address(coreTarget) == address(0)) revert CoreTargetRequired();
+        mirror.setFrozen(orderId, true);
+        coreTarget.freezeOrder(orderId);
         emit FreezeOrder(orderId);
     }
 
     function releaseToSeller(bytes32 orderId) external onlyArbitrator {
-        try mirror.setFrozen(orderId, false) {} catch {}
-        if (address(coreTarget) != address(0)) {
-            try coreTarget.releaseToSeller(orderId) {} catch {}
-        }
+        if (address(coreTarget) == address(0)) revert CoreTargetRequired();
+        mirror.setFrozen(orderId, false);
+        coreTarget.releaseToSeller(orderId);
         emit ReleaseToSeller(orderId);
     }
 
     function refundToBuyer(bytes32 orderId) external onlyArbitrator {
-        try mirror.setFrozen(orderId, false) {} catch {}
-        if (address(coreTarget) != address(0)) {
-            try coreTarget.refundToBuyer(orderId) {} catch {}
-        }
+        if (address(coreTarget) == address(0)) revert CoreTargetRequired();
+        mirror.setFrozen(orderId, false);
+        coreTarget.refundToBuyer(orderId);
         emit RefundToBuyer(orderId);
     }
 }
