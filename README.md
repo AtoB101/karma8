@@ -89,7 +89,14 @@ cd frontend && npm i && npm run sync-addresses && npm run dev
 ```
 
 双仓库分工：[`docs/MINIAPP_DUAL_REPO.md`](docs/MINIAPP_DUAL_REPO.md)  
-主仓实现简报：[`integrations/telegram-miniapp/MAIN_BRIEF.md`](integrations/telegram-miniapp/MAIN_BRIEF.md)
+主仓实现简报：[`integrations/telegram-miniapp/MAIN_BRIEF.md`](integrations/telegram-miniapp/MAIN_BRIEF.md)  
+**karma8 联调清单 A–G：** [`integrations/telegram-miniapp/KARMA8_CHECKLIST.md`](integrations/telegram-miniapp/KARMA8_CHECKLIST.md)  
+运行时（chain/RPC/CORS/冷启动）：[`docs/ECONOMY_RUNTIME.md`](docs/ECONOMY_RUNTIME.md)
+
+```bash
+make export-abis      # abi/*.json for main BFF
+make verify-wiring    # FeeBridge.core == Bilateral + cold-start quote
+```
 
 ## 文档
 
@@ -98,5 +105,7 @@ cd frontend && npm i && npm run sync-addresses && npm run dev
 - [合约地址对接说明](docs/INTEGRATION.md)
 - [共建计分规格 v1](docs/cocreation/COCREATION_SCORE_V1.md)
 - [Telegram MiniApp 双仓分工](docs/MINIAPP_DUAL_REPO.md)
+- [Economy runtime / 冷启动](docs/ECONOMY_RUNTIME.md)
+- [karma8 联调清单 A–G](integrations/telegram-miniapp/KARMA8_CHECKLIST.md)
 - [开关启停操作手册](docs/SWITCH_OPS.md)
 - [安全红线](docs/SECURITY.md)

@@ -1,4 +1,4 @@
-.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage cocreation patch-verify cross-repo security-local
+.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage cocreation patch-verify cross-repo security-local export-abis verify-wiring
 
 build:
 	forge build
@@ -8,6 +8,12 @@ test:
 
 fmt:
 	forge fmt
+
+export-abis:
+	bash scripts/export-abis.sh
+
+verify-wiring:
+	bash integrations/telegram-miniapp/verify_wiring.sh
 
 flywheel:
 	forge test --match-contract FlywheelE2E -vv

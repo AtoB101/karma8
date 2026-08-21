@@ -22,6 +22,21 @@
 主仓负责 initData 验签与 Verification；本页只展示经济合约状态。  
 说明：[`../integrations/telegram-miniapp/ECONOMY_SURFACE.md`](../integrations/telegram-miniapp/ECONOMY_SURFACE.md)
 
+环境：
+
+```bash
+# 根目录 .env
+KARMA8_ECONOMY_HOST=https://economy.example.com
+MINIAPP_ORIGIN=https://miniapp.example.com,https://web.telegram.org
+
+# 前端
+cp .env.example .env.local   # or:
+npm run sync-addresses -- sepolia
+npm run dev
+```
+
+Vite 使用 `MINIAPP_ORIGIN` 配置 CORS + CSP `frame-ancestors`（见 `vite.config.ts`）。
+
 ## 使用
 
 ```tsx
@@ -40,6 +55,8 @@ const addresses: EconomyAddresses = {
   contributorRegistry: "0x...",
   contributionLedger: "0x...",
   cocreationScore: "0x...",
+  usdc: "0x...",
+  karmaBilateral: "0x...",
 };
 
 export default function App() {
@@ -52,6 +69,6 @@ export default function App() {
 
 ```bash
 npm i
-npm run sync-addresses   # 从 deployments/local.json
+npm run sync-addresses -- local   # 从 deployments/local.json
 npm run dev
 ```

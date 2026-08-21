@@ -304,6 +304,44 @@ export const feeBridgeAbi = [
     inputs: [{ name: "developer", type: "address" }],
     outputs: [{ type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "quoteFee",
+    stateMutability: "view",
+    inputs: [
+      { name: "developer", type: "address" },
+      { name: "amountUsdc", type: "uint256" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+] as const;
+
+export const settlementMirrorAbi = [
+  {
+    type: "function",
+    name: "isReporter",
+    stateMutability: "view",
+    inputs: [{ name: "reporter", type: "address" }],
+    outputs: [{ type: "bool" }],
+  },
+  {
+    type: "function",
+    name: "getDeveloperGmv",
+    stateMutability: "view",
+    inputs: [
+      { name: "developer", type: "address" },
+      { name: "fromTs", type: "uint64" },
+      { name: "toTs", type: "uint64" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "lifetimeDeveloperGmv",
+    stateMutability: "view",
+    inputs: [{ name: "developer", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
 ] as const;
 
 export const TIER = {
@@ -334,6 +372,8 @@ export type EconomyAddresses = {
   contributorRegistry: `0x${string}`;
   contributionLedger: `0x${string}`;
   cocreationScore: `0x${string}`;
+  usdc: `0x${string}`;
+  karmaBilateral: `0x${string}`;
 };
 
 export const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as const;

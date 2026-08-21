@@ -19,23 +19,22 @@ Telegram WebApp：若存在 `window.Telegram.WebApp`，面板会 `ready()` / `ex
 
 ## 环境变量（Vite）
 
+见 `frontend/.env.example`。同步：
+
 ```bash
-VITE_TREASURY=
-VITE_STAKE=
-VITE_GOVERNOR=
-VITE_STAKER_POOL=
-VITE_DEVELOPER_POOL=
-VITE_CONTRIBUTION_NFT=
-VITE_KARMA=
-VITE_FEE_BRIDGE=
-VITE_SETTLEMENT_MIRROR=
-VITE_CONTRIBUTOR_REGISTRY=
-VITE_CONTRIBUTION_LEDGER=
-VITE_COCREATION_SCORE=
-VITE_USDC=
+cd frontend && npm run sync-addresses -- sepolia   # or local
 ```
 
-`frontend/scripts/sync-addresses.mjs` 可从 `deployments/local.json` 同步。
+根目录另配：
+
+```bash
+KARMA8_ECONOMY_HOST=https://economy.example.com
+MINIAPP_ORIGIN=https://miniapp.example.com,https://web.telegram.org,https://webk.telegram.org,https://webz.telegram.org
+```
+
+`vite.config.ts` 用 `MINIAPP_ORIGIN` 设置 **CORS** 与 CSP **frame-ancestors**（允许主仓 / Telegram iframe）。
+
+静态样例：`GET /economy-surface.json`（`frontend/public/`）。主仓 BFF 的 `GET /v1/economy/surface` 可 eth_call 本仓 ABI 或代理该 JSON（填真实地址后）。
 
 ## 面板能力（本仓）
 

@@ -17,9 +17,11 @@ export function readAddresses(): EconomyAddresses {
     contributorRegistry: (env.VITE_CONTRIBUTOR_REGISTRY as `0x${string}`) || z,
     contributionLedger: (env.VITE_CONTRIBUTION_LEDGER as `0x${string}`) || z,
     cocreationScore: (env.VITE_COCREATION_SCORE as `0x${string}`) || z,
+    usdc: (env.VITE_USDC as `0x${string}`) || z,
+    karmaBilateral: (env.VITE_KARMA_BILATERAL as `0x${string}`) || z,
   };
 }
 
 export function isConfigured(addresses: EconomyAddresses): boolean {
-  return addresses.treasury !== z;
+  return addresses.treasury !== z && addresses.feeBridge !== z;
 }
