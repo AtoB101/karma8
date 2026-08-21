@@ -1,4 +1,4 @@
-.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage cocreation patch-verify cross-repo security-local export-abis verify-wiring tg-demo tg-seed
+.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage cocreation patch-verify cross-repo security-local export-abis verify-wiring tg-demo tg-seed security-audit
 
 build:
 	forge build
