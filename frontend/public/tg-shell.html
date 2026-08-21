@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KARMA · Telegram shell mock</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #17212b;
+        --bar: #232e3c;
+        --accent: #6ab3f3;
+        --ink: #f5f5f5;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: #0e1621;
+        color: var(--ink);
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .phone {
+        width: min(420px, 100%);
+        height: min(820px, 100dvh);
+        margin: 0.75rem;
+        background: var(--bg);
+        border-radius: 1rem;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      }
+      .top {
+        background: var(--bar);
+        padding: 0.75rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+      }
+      .top strong { color: var(--accent); }
+      .tabs {
+        display: flex;
+        gap: 0.35rem;
+        padding: 0.5rem;
+        background: #1c2733;
+        flex-wrap: wrap;
+      }
+      .tabs button {
+        border: 0;
+        background: #2b3847;
+        color: var(--ink);
+        border-radius: 0.4rem;
+        padding: 0.45rem 0.7rem;
+        cursor: pointer;
+        font: inherit;
+      }
+      .tabs button.active { background: var(--accent); color: #0e1621; font-weight: 700; }
+      iframe {
+        flex: 1;
+        width: 100%;
+        border: 0;
+        background: #0f1410;
+      }
+      .hint {
+        max-width: 420px;
+        padding: 0 1rem 1rem;
+        color: #9ab;
+        font-size: 0.85rem;
+        line-height: 1.45;
+      }
+      code { color: #cde; }
+    </style>
+  </head>
+  <body>
+    <div class="phone">
+      <div class="top">
+        <span>KARMA Bot · mock</span>
+        <strong id="tabLabel">Wallet</strong>
+      </div>
+      <div class="tabs" id="tabs">
+        <button type="button" data-tab="status" class="active">状态</button>
+        <button type="button" data-tab="wallet">钱包</button>
+        <button type="button" data-tab="rewards">收益</button>
+        <button type="button" data-tab="contrib">贡献</button>
+      </div>
+      <iframe id="frame" title="economy" allow="clipboard-write"></iframe>
+    </div>
+    <p class="hint">
+      本页模拟主仓 MiniApp 父壳：iframe 加载 karma8 <code>/?view=miniapp</code>。
+      真 Telegram 仍须 HTTPS + 主仓 initData 验签。本地请先
+      <code>make tg-demo</code> 再 <code>npm run dev</code>。
+    </p>
+    <script>
+      // Minimal Telegram.WebApp stub so child can call ready/expand
+      window.Telegram = {
+        WebApp: {
+          ready() {},
+          expand() {},
+          initData: "user=%7B%22id%22%3A10001%2C%22username%22%3A%22karma_demo%22%7D",
+          initDataUnsafe: { user: { id: 10001, username: "karma_demo", first_name: "Demo" } },
+          themeParams: { bg_color: "#0f1410", text_color: "#e8f0e9", button_color: "#c4f542" },
+          close() {},
+        },
+      };
+
+      const frame = document.getElementById("frame");
+      const label = document.getElementById("tabLabel");
+      const origin = location.origin;
+
+      function load(tab) {
+        frame.src = `${origin}/?view=miniapp&tab=${tab}&embed=1`;
+        label.textContent = tab;
+        document.querySelectorAll("#tabs button").forEach((b) => {
+          b.classList.toggle("active", b.dataset.tab === tab);
+        });
+      }
+
+      document.getElementById("tabs").addEventListener("click", (e) => {
+        const t = e.target.closest("button")?.dataset?.tab;
+        if (t) load(t);
+      });
+
+      // Inject stub into iframe via same-origin: child reads window.parent? No —
+      // child only sees its own window. Inject via query flag; child already uses
+      // optional Telegram object. For same-origin mock, also patch after load:
+      frame.addEventListener("load", () => {
+        try {
+          const w = frame.contentWindow;
+          if (w && !w.Telegram) {
+            w.Telegram = window.Telegram;
+            w.Telegram.WebApp.ready();
+            w.Telegram.WebApp.expand();
+          }
+        } catch (_) {}
+      });
+
+      load("status");
+    </script>
+  </body>
+</html>

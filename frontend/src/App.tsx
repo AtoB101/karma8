@@ -5,42 +5,31 @@ import { StakePage } from "./pages/StakePage";
 import { NodeRegisterPage } from "./pages/NodeRegisterPage";
 import { GovernancePage } from "./pages/GovernancePage";
 import { ContributionNftPage } from "./pages/ContributionNftPage";
-import { treasuryAbi, type EconomyAddresses } from "./lib/abis";
+import { MiniAppEconomyPage } from "./pages/MiniAppEconomyPage";
+import { treasuryAbi, ZERO_ADDRESS, type EconomyAddresses } from "./lib/abis";
+import { isConfigured, readAddresses } from "./lib/addresses";
+import { isMiniAppView } from "./lib/telegram";
 
-type Tab = "stake" | "node" | "gov" | "nft" | "status";
-
-const zero = "0x0000000000000000000000000000000000000000" as const;
-
-function readAddresses(): EconomyAddresses {
-  const env = import.meta.env;
-  return {
-    treasury: (env.VITE_TREASURY as `0x${string}`) || zero,
-    stake: (env.VITE_STAKE as `0x${string}`) || zero,
-    governor: (env.VITE_GOVERNOR as `0x${string}`) || zero,
-    stakerPool: (env.VITE_STAKER_POOL as `0x${string}`) || zero,
-    contributionNft: (env.VITE_CONTRIBUTION_NFT as `0x${string}`) || zero,
-    karmaToken: (env.VITE_KARMA as `0x${string}`) || zero,
-  };
-}
+type Tab = "stake" | "node" | "gov" | "nft" | "status" | "miniapp";
 
 function StatusPanel({ addresses }: { addresses: EconomyAddresses }) {
   const revenue = useReadContract({
     address: addresses.treasury,
     abi: treasuryAbi,
     functionName: "enableRevenueMode",
-    query: { enabled: addresses.treasury !== zero },
+    query: { enabled: addresses.treasury !== ZERO_ADDRESS },
   });
   const fee = useReadContract({
     address: addresses.treasury,
     abi: treasuryAbi,
     functionName: "feeBps",
-    query: { enabled: addresses.treasury !== zero },
+    query: { enabled: addresses.treasury !== ZERO_ADDRESS },
   });
   const splits = useReadContract({
     address: addresses.treasury,
     abi: treasuryAbi,
     functionName: "splitRatios",
-    query: { enabled: addresses.treasury !== zero },
+    query: { enabled: addresses.treasury !== ZERO_ADDRESS },
   });
 
   return (
@@ -67,6 +56,10 @@ function StatusPanel({ addresses }: { addresses: EconomyAddresses }) {
           <span>Treasury</span>
           <strong style={{ fontSize: "0.85rem", wordBreak: "break-all" }}>{addresses.treasury}</strong>
         </div>
+        <div>
+          <span>FeeBridge</span>
+          <strong style={{ fontSize: "0.85rem", wordBreak: "break-all" }}>{addresses.feeBridge}</strong>
+        </div>
       </div>
       <p>冷启动阶段保持 OFF；治理投票通过后再开启飞轮。费率与分账链上不可变。</p>
     </section>
@@ -74,12 +67,28 @@ function StatusPanel({ addresses }: { addresses: EconomyAddresses }) {
 }
 
 export function App() {
-  const [tab, setTab] = useState<Tab>("status");
+  const miniDefault = useMemo(() => isMiniAppView(), []);
+  const [tab, setTab] = useState<Tab>(miniDefault ? "miniapp" : "status");
   const addresses = useMemo(() => readAddresses(), []);
-  const configured = addresses.treasury !== zero;
+  const configured = isConfigured(addresses);
   const { address, isConnected } = useAccount();
   const { connect, isPending } = useConnect();
   const { disconnect } = useDisconnect();
+
+  if (tab === "miniapp" || miniDefault) {
+    return (
+      <>
+        {!miniDefault && (
+          <div className="karma-economy" style={{ maxWidth: 960, margin: "0 auto", paddingBottom: 0 }}>
+            <button className="karma-btn karma-btn-ghost" type="button" onClick={() => setTab("status")}>
+              ← 完整控制台
+            </button>
+          </div>
+        )}
+        <MiniAppEconomyPage addresses={addresses} />
+      </>
+    );
+  }
 
   return (
     <div className="karma-economy" style={{ maxWidth: 960, margin: "0 auto" }}>
@@ -94,13 +103,14 @@ export function App() {
               <span style={{ color: "var(--karma-muted)", fontSize: "0.9rem" }}>
                 {address?.slice(0, 6)}…{address?.slice(-4)}
               </span>
-              <button className="karma-btn karma-btn-ghost" onClick={() => disconnect()}>
+              <button className="karma-btn karma-btn-ghost" type="button" onClick={() => disconnect()}>
                 断开
               </button>
             </>
           ) : (
             <button
               className="karma-btn karma-btn-primary"
+              type="button"
               disabled={isPending}
               onClick={() => connect({ connector: injected() })}
             >
@@ -123,10 +133,12 @@ export function App() {
             ["node", "节点"],
             ["gov", "治理"],
             ["nft", "贡献 NFT"],
+            ["miniapp", "MiniApp 经济面"],
           ] as const
         ).map(([id, label]) => (
           <button
             key={id}
+            type="button"
             className={`karma-btn ${tab === id ? "karma-btn-primary" : "karma-btn-ghost"}`}
             onClick={() => setTab(id)}
           >

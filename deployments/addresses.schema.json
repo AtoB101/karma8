@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "karma8 deployment addresses",
+  "type": "object",
+  "required": [
+    "chainId",
+    "treasury",
+    "feeBridge",
+    "settlementMirror",
+    "stake",
+    "developerPool",
+    "stakerPool",
+    "contributionNft",
+    "karma",
+    "usdc",
+    "karmaBilateral"
+  ],
+  "properties": {
+    "chainId": { "type": "integer" },
+    "rpcUrl": { "type": "string" },
+    "enableRevenueMode": { "type": "boolean", "default": false },
+    "feeBpsColdStart": { "type": "integer", "const": 0 },
+    "feeBpsConstant": { "type": "integer", "const": 20 },
+    "treasury": { "type": "string" },
+    "feeBridge": { "type": "string" },
+    "settlementMirror": { "type": "string" },
+    "stake": { "type": "string" },
+    "governor": { "type": "string" },
+    "developerPool": { "type": "string" },
+    "stakerPool": { "type": "string" },
+    "verifierPool": { "type": "string" },
+    "contributionNft": { "type": "string" },
+    "contributorRegistry": { "type": "string" },
+    "contributionLedger": { "type": "string" },
+    "cocreationScoreView": { "type": "string" },
+    "karma": { "type": "string" },
+    "usdc": { "type": "string" },
+    "karmaBilateral": { "type": "string", "description": "KARMA_CORE_ADDRESS / FeeBridge.core" },
+    "economyHost": { "type": "string", "description": "KARMA8_ECONOMY_HOST" },
+    "miniappEmbedPath": { "type": "string", "default": "/?view=miniapp" }
+  }
+}

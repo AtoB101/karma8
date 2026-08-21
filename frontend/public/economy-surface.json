@@ -1,0 +1,34 @@
+{
+  "chainId": 11155111,
+  "rpcUrl": "https://sepolia.infura.io/v3/YOUR_KEY",
+  "enableRevenueMode": false,
+  "feeBpsColdStart": 0,
+  "feeBpsConstant": 20,
+  "splitRatios": [40, 30, 20, 10],
+  "gmvWeightBps": 7000,
+  "nftWeightBps": 3000,
+  "mintThresholdWeight": 200,
+  "contracts": {
+    "treasury": "0x...",
+    "feeBridge": "0x...",
+    "settlementMirror": "0x...",
+    "stake": "0x...",
+    "governor": "0x...",
+    "developerPool": "0x...",
+    "stakerPool": "0x...",
+    "contributionNft": "0x...",
+    "contributorRegistry": "0x...",
+    "contributionLedger": "0x...",
+    "cocreationScoreView": "0x...",
+    "karmaToken": "0x...",
+    "usdc": "0x...",
+    "karmaBilateral": "0x..."
+  },
+  "embed": {
+    "economyHost": "https://economy.example.com",
+    "miniappUrl": "https://economy.example.com/?view=miniapp",
+    "tabs": ["status", "wallet", "rewards", "contrib"],
+    "includesVerificationEngine": false
+  },
+  "notes": "Main BFF GET /v1/economy/surface should eth_call these contracts or proxy this JSON after deploy fill-in."
+}

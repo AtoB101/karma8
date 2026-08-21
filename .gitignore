@@ -16,11 +16,16 @@ frontend/node_modules/
 # Forge doc book output (keep project docs/)
 docs/book/
 
-# Local deployment artifacts (keep directory)
+# Local deployment artifacts (keep schema + examples)
 deployments/*.json
 !deployments/.gitkeep
+!deployments/*.schema.json
+!deployments/*.example.json
 
 # Dotenv file
 .env
 .env.*
 !.env.example
+!frontend/.env.example
+frontend/.env.local
+frontend/dist/

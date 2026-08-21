@@ -1,0 +1,18 @@
+{
+  "alignedFrontendAbi": "frontend/src/lib/abis.ts",
+  "files": [
+    "abi/Treasury.json",
+    "abi/FeeBridge.json",
+    "abi/SettlementMirror.json",
+    "abi/MultiTierStake.json",
+    "abi/StakerRewardPool.json",
+    "abi/DeveloperRewardPool.json",
+    "abi/ContributionNFT.json",
+    "abi/ContributorRegistry.json",
+    "abi/ContributionLedger.json",
+    "abi/CocreationScoreView.json",
+    "abi/KarmaToken.json",
+    "abi/KarmaGovernor.json"
+  ],
+  "notes": "Use abis.ts for MiniApp; use abi/*.json for BFF eth_call / codegen."
+}

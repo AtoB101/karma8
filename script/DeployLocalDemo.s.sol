@@ -81,7 +81,11 @@ contract DeployLocalDemo is Script {
         nft.setMinter(address(ledger));
         devPool.setRegistry(address(registry));
 
-        // Wire
+        // Wire — set pool arbitrator while deployer is still temporary treasury
+        verifierPool.setArbitrator(address(arbitrator));
+        stake.setArbitrator(address(arbitrator));
+        vesting.setStake(address(stake));
+
         devPool.setTreasury(address(treasury));
         stakerPool.setTreasury(address(treasury));
         verifierPool.setTreasury(address(treasury));
@@ -94,9 +98,6 @@ contract DeployLocalDemo is Script {
         core.setEscrowController(address(escrow));
         arbitrator.setNodePool(address(verifierPool));
         arbitrator.setCoreEscrowAdapter(address(escrow));
-        verifierPool.setArbitrator(address(arbitrator));
-        stake.setArbitrator(address(arbitrator));
-        vesting.setStake(address(stake));
         treasury.setKarmaCore(address(core));
         treasury.setGovernance(address(governor));
         stake.setGovernance(address(governor));
@@ -122,12 +123,15 @@ contract DeployLocalDemo is Script {
         vm.serializeAddress(json, "settlementMirror", address(mirror));
         vm.serializeAddress(json, "feeBridge", address(bridge));
         vm.serializeAddress(json, "referenceCore", address(core));
+        // Alias for main/env checklist A (KARMA_BILATERAL)
+        vm.serializeAddress(json, "karmaBilateral", address(core));
         vm.serializeAddress(json, "escrowAdapter", address(escrow));
         vm.serializeAddress(json, "contributorRegistry", address(registry));
         vm.serializeAddress(json, "contributionLedger", address(ledger));
         vm.serializeAddress(json, "cocreationScoreView", address(scoreView));
         vm.serializeBool(json, "enableRevenueMode", treasury.enableRevenueMode());
         vm.serializeUint(json, "feeBps", KarmaEconomyConstants.FEE_BPS);
+        vm.serializeUint(json, "feeBpsColdStart", uint256(0));
         string memory out = vm.serializeUint(json, "chainId", block.chainid);
         vm.writeJson(out, "deployments/local.json");
 
