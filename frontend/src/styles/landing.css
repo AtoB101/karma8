@@ -1,0 +1,214 @@
+.karma-landing {
+  --land-ink: #e8f0e9;
+  --land-muted: #9aafa0;
+  --land-accent: #c4f542;
+  position: relative;
+  min-height: 100dvh;
+  color: var(--land-ink);
+  font-family: var(--karma-font-body, "DM Sans", sans-serif);
+  overflow-x: hidden;
+}
+
+.karma-landing-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 90% 70% at 70% 20%, rgba(196, 245, 66, 0.16), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 10% 90%, rgba(90, 140, 110, 0.22), transparent 50%),
+    linear-gradient(165deg, #0a100c 0%, #152018 45%, #0f1410 100%);
+  animation: karma-land-shift 18s ease-in-out infinite alternate;
+}
+
+@keyframes karma-land-shift {
+  from {
+    filter: saturate(1);
+    transform: scale(1);
+  }
+  to {
+    filter: saturate(1.08);
+    transform: scale(1.03);
+  }
+}
+
+.karma-landing-nav,
+.karma-landing-hero,
+.karma-landing-strip,
+.karma-landing-foot {
+  position: relative;
+  z-index: 1;
+}
+
+.karma-landing-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+}
+
+.karma-landing-nav-brand {
+  font-family: var(--karma-font-display, "Fraunces", Georgia, serif);
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+
+.karma-landing-nav-links {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.karma-landing-link {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--land-muted);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.karma-landing-link:hover {
+  color: var(--land-ink);
+}
+
+.karma-landing-hero {
+  min-height: min(78dvh, 820px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 2rem 1.5rem 3rem;
+  max-width: 52rem;
+}
+
+.karma-landing-brand {
+  font-family: var(--karma-font-display, "Fraunces", Georgia, serif);
+  font-size: clamp(3rem, 12vw, 5.5rem);
+  line-height: 0.95;
+  margin: 0 0 1rem;
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.karma-landing-title {
+  font-family: var(--karma-font-display, "Fraunces", Georgia, serif);
+  font-size: clamp(1.55rem, 4.2vw, 2.35rem);
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.85rem;
+  max-width: 18ch;
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.karma-landing-lead {
+  color: var(--land-muted);
+  font-size: 1.05rem;
+  line-height: 1.55;
+  margin: 0 0 1.75rem;
+  max-width: 36rem;
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.karma-landing-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.karma-landing.is-ready .karma-landing-brand,
+.karma-landing.is-ready .karma-landing-title,
+.karma-landing.is-ready .karma-landing-lead,
+.karma-landing.is-ready .karma-landing-cta {
+  animation: karma-land-rise 700ms ease forwards;
+}
+
+.karma-landing.is-ready .karma-landing-title {
+  animation-delay: 90ms;
+}
+.karma-landing.is-ready .karma-landing-lead {
+  animation-delay: 160ms;
+}
+.karma-landing.is-ready .karma-landing-cta {
+  animation-delay: 230ms;
+}
+
+@keyframes karma-land-rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.karma-landing-cta-main {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.karma-landing-strip {
+  border-top: 1px solid rgba(232, 240, 233, 0.12);
+  padding: 2.5rem 1.5rem 3rem;
+  max-width: 52rem;
+}
+
+.karma-landing-strip h2 {
+  font-family: var(--karma-font-display, "Fraunces", Georgia, serif);
+  font-size: 1.45rem;
+  margin: 0 0 0.5rem;
+}
+
+.karma-landing-strip > p {
+  color: var(--land-muted);
+  margin: 0 0 1.5rem;
+  max-width: 40rem;
+  line-height: 1.55;
+}
+
+.karma-landing-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.karma-landing-steps li {
+  display: grid;
+  gap: 0.25rem;
+  border-left: 2px solid var(--land-accent);
+  padding-left: 0.85rem;
+}
+
+.karma-landing-steps strong {
+  font-size: 1.05rem;
+}
+
+.karma-landing-steps span {
+  color: var(--land-muted);
+  font-size: 0.95rem;
+}
+
+.karma-landing-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 2rem;
+  color: var(--land-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid rgba(232, 240, 233, 0.08);
+}
+
+.karma-landing-foot a {
+  color: var(--land-accent);
+}
+
+@media (min-width: 800px) {
+  .karma-landing-steps {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

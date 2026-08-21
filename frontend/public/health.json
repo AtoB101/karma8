@@ -1,0 +1,19 @@
+{
+  "service": "karma8-economy",
+  "status": "ok",
+  "phase": "P1-cold-start",
+  "enableRevenueMode": false,
+  "feeBpsColdStart": 0,
+  "feeBpsConstant": 20,
+  "miniappPath": "/?view=miniapp",
+  "docs": {
+    "commercial": "/docs note: see repo docs/commercial/COMMERCIAL_STANDARD.md",
+    "ops": "docs/commercial/OPS_RUNBOOK.md"
+  },
+  "checks": {
+    "feeExactQuoteRequired": true,
+    "orderIdIdempotent": true,
+    "privilegedRolesGovernanceOnly": true
+  },
+  "updatedAt": "2026-08-21T00:00:00Z"
+}

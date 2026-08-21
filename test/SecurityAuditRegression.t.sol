@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import { EconomyFixture } from "./helpers/EconomyFixture.sol";
-import { SettlementMirror } from "../src/integration/SettlementMirror.sol";
-import { FeeBridge } from "../src/integration/FeeBridge.sol";
-import { ReferenceSettlementCore } from "../src/integration/ReferenceSettlementCore.sol";
-import { IKarmaCoreView } from "../src/interfaces/IKarmaCoreView.sol";
-import { MultiSigWallet } from "../src/governance/MultiSigWallet.sol";
-import { KarmaGovernor } from "../src/governance/KarmaGovernor.sol";
-import { IMultiTierStake } from "../src/interfaces/IMultiTierStake.sol";
-import { ContributorRegistry } from "../src/cocreation/ContributorRegistry.sol";
-import { IContributorRegistry } from "../src/interfaces/IContributorRegistry.sol";
+import {EconomyFixture} from "./helpers/EconomyFixture.sol";
+import {SettlementMirror} from "../src/integration/SettlementMirror.sol";
+import {FeeBridge} from "../src/integration/FeeBridge.sol";
+import {ReferenceSettlementCore} from "../src/integration/ReferenceSettlementCore.sol";
+import {IKarmaCoreView} from "../src/interfaces/IKarmaCoreView.sol";
+import {MultiSigWallet} from "../src/governance/MultiSigWallet.sol";
+import {KarmaGovernor} from "../src/governance/KarmaGovernor.sol";
+import {IMultiTierStake} from "../src/interfaces/IMultiTierStake.sol";
+import {ContributorRegistry} from "../src/cocreation/ContributorRegistry.sol";
+import {IContributorRegistry} from "../src/interfaces/IContributorRegistry.sol";
 
 /// @notice Regression coverage for SECURITY_AUDIT_2026-08-21 Critical/High remediations.
 contract SecurityAuditRegressionTest is EconomyFixture {

@@ -1,43 +1,48 @@
 # 商业落地进度清单
 
-更新目标：**≥95%**（见 [GO_LIVE_95.md](./GO_LIVE_95.md)）
+对齐标准：[`commercial/COMMERCIAL_STANDARD.md`](./commercial/COMMERCIAL_STANDARD.md)
+
+## 阶段
+
+| 阶段 | 状态 |
+|------|------|
+| P0 技术闭环 | 本仓代码具备 |
+| P1 公开冷启动（商业试点） | 代码+官网+门禁就绪；**你需完成 USER_OPS + 主仓要求** |
+| P2 正式收费 | 门禁脚本支持；须观察期 + 治理开启 |
 
 ## A. 协议与隔离
 
 - [x] 不可变费率 / 分账常量
 - [x] `enableRevenueMode` 默认 false + 回购暂停
 - [x] Treasury 禁止私人转账
-- [x] `FeeBridge` / `SettlementMirror` / `CoreEscrowAdapter` / `BilateralFeeHook`
-- [x] 本地 `ReferenceSettlementCore` 飞轮 E2E
-- [x] karma-core 可应用补丁包 + 锚点校验脚本
-- [ ] Karma 仓库维护者合并补丁（无本 CI 写权限）
+- [x] FeeBridge / Mirror / Escrow（fail-hard）/ fee==quote / orderId 幂等
+- [x] 特权角色禁止自领
+- [x] karma-core 补丁已合主仓 PR #141
 
 ## B. 工程与安全
 
-- [x] Foundry + CI（fmt/build/test）
-- [x] 单元 / 集成 / 飞轮 / GoLiveAcceptance / 安全硬化 / 不变量
-- [x] Certora 规格（Treasury / Stake）
-- [x] Slither workflow + 配置
-- [x] `DeployEconomy` / `DeployLocalDemo` / `DeploySepolia` / `BootstrapAllocations`
-- [ ] 第三方审计报告（材料已就绪）
+- [x] Foundry + CI + SecurityHardening + SecurityAuditRegression
+- [x] 安全审计报告 `docs/security/SECURITY_AUDIT_2026-08-21.md`
+- [x] `make commercial-check`
+- [ ] 第三方审计（P2 强烈建议）
 
-## C. 产品前端
+## C. 产品 / 官网 / TG
 
-- [x] 嵌入式页面组件
-- [x] Vite 控制台（钱包连接 / 状态页 / 四业务页）
-- [x] `frontend/scripts/sync-addresses.mjs` 同步本地部署地址
-- [ ] 生产级订单索引看板（非上线阻塞项）
+- [x] 官网 Landing（`/`）
+- [x] MiniApp 经济面 `/?view=miniapp`
+- [x] 控制台 `/?view=console`
+- [x] `/health.json` + CSP / nginx 模板
+- [ ] 生产 HTTPS 域名与 Bot（**你的 OPS**）
 
-## D. 网络与运维
+## D. 运维
 
-- [x] Chainlink Automation 配置脚本
-- [x] 开关 / 对接 / 安全 / 95% 门禁文档
-- [ ] Sepolia 实地址填表（部署后填写 INTEGRATION 地址表）
+- [x] `OPS_RUNBOOK.md`
+- [x] 主仓商业要求清单
+- [ ] 生产监控告警接入（按手册配置）
 
 ## 自动验收
 
 ```bash
+make commercial-check
 forge test --match-contract GoLiveAcceptance -vv
 ```
-
-期望：`GoLiveAcceptance` 12/12 检查通过（≥95%）。

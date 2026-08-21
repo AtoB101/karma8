@@ -1,7 +1,8 @@
-# 你需要完成的事项（正式运营）
+# 你需要完成的事项（正式运营 · P1 商业试点）
 
-> karma8 侧代码 / 合约 hardening / 经济面 / 安全 Critical 已就绪（见 PR #6+#7+#本分支）。  
-> **下面每一项只能由你（或主仓运维）完成**——我无法代替你持有 Bot Token、域名、私钥或多签。
+> 对齐：`docs/commercial/COMMERCIAL_STANDARD.md`  
+> karma8 代码门禁：`make commercial-check`  
+> 主仓要求：`COMMERCIAL_MAIN_REQUIREMENTS.md`
 
 按顺序勾选。全部勾完 = 可以正式在 Telegram 运营（建议先冷启动 `enableRevenueMode=false`）。
 
