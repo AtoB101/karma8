@@ -81,7 +81,11 @@ contract DeployLocalDemo is Script {
         nft.setMinter(address(ledger));
         devPool.setRegistry(address(registry));
 
-        // Wire
+        // Wire — set pool arbitrator while deployer is still temporary treasury
+        verifierPool.setArbitrator(address(arbitrator));
+        stake.setArbitrator(address(arbitrator));
+        vesting.setStake(address(stake));
+
         devPool.setTreasury(address(treasury));
         stakerPool.setTreasury(address(treasury));
         verifierPool.setTreasury(address(treasury));
@@ -94,9 +98,6 @@ contract DeployLocalDemo is Script {
         core.setEscrowController(address(escrow));
         arbitrator.setNodePool(address(verifierPool));
         arbitrator.setCoreEscrowAdapter(address(escrow));
-        verifierPool.setArbitrator(address(arbitrator));
-        stake.setArbitrator(address(arbitrator));
-        vesting.setStake(address(stake));
         treasury.setKarmaCore(address(core));
         treasury.setGovernance(address(governor));
         stake.setGovernance(address(governor));

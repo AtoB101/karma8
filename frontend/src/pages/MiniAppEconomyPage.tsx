@@ -11,6 +11,7 @@ import {
   contributorRegistryAbi,
   developerPoolAbi,
   feeBridgeAbi,
+  settlementMirrorAbi,
   stakeAbi,
   stakerPoolAbi,
   treasuryAbi,
@@ -136,6 +137,23 @@ export function MiniAppEconomyPage({ addresses }: Props) {
     functionName: "core",
     query: { enabled: addresses.feeBridge !== ZERO_ADDRESS },
   });
+  const quoteBps = useReadContract({
+    address: addresses.feeBridge,
+    abi: feeBridgeAbi,
+    functionName: "quoteFeeBps",
+    args: address ? [address] : undefined,
+    query: { enabled: enabled && addresses.feeBridge !== ZERO_ADDRESS },
+  });
+  const gmvSelf = useReadContract({
+    address: addresses.settlementMirror,
+    abi: settlementMirrorAbi,
+    functionName: "lifetimeDeveloperGmv",
+    args: address ? [address] : undefined,
+    query: { enabled: enabled && addresses.settlementMirror !== ZERO_ADDRESS },
+  });
+
+  const scenarioHint =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("scenario") : null;
 
   const onClaim = () => {
     writeContract({
@@ -152,7 +170,13 @@ export function MiniAppEconomyPage({ addresses }: Props) {
       <p>
         经济面：质押档位、贡献权重与分红。交易验证与结算在主网络完成；本页只读/领奖。
         {tgUser?.username ? ` TG @${tgUser.username}` : tgUser?.id ? ` TG #${tgUser.id}` : ""}
+        {tg ? " · WebApp" : ""}
       </p>
+      {scenarioHint && (
+        <p className="karma-hint" style={{ color: "var(--karma-accent)" }}>
+          场景标记：{scenarioHint}
+        </p>
+      )}
 
       <div className="karma-row" style={{ justifyContent: "space-between", marginBottom: "1rem" }}>
         {isConnected ? (
@@ -217,14 +241,29 @@ export function MiniAppEconomyPage({ addresses }: Props) {
               </strong>
             </div>
             <div>
+              <span>当前报价</span>
+              <strong>{quoteBps.data != null ? `${quoteBps.data.toString()} bps` : "—"}</strong>
+            </div>
+            <div>
+              <span>你的 lifetime GMV</span>
+              <strong>{gmvSelf.data != null ? formatUnits(gmvSelf.data, 6) : "0"} USDC</strong>
+            </div>
+            <div>
               <span>FeeBridge.core</span>
               <strong style={{ fontSize: "0.8rem", wordBreak: "break-all" }}>
                 {bridgeCore.data ?? "—"}
               </strong>
             </div>
+            <div>
+              <span>Bilateral</span>
+              <strong style={{ fontSize: "0.8rem", wordBreak: "break-all" }}>
+                {addresses.karmaBilateral !== ZERO_ADDRESS ? addresses.karmaBilateral : "—"}
+              </strong>
+            </div>
           </div>
           <p className="karma-hint" style={{ color: "var(--karma-muted)" }}>
             Verification / Evidence 不在本页。主仓校验通过后 settle → FeeBridge 才会更新 GMV。
+            自成交（buyer==seller）不计 developer GMV。
           </p>
         </section>
       )}

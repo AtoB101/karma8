@@ -78,6 +78,13 @@
 
 ## G. 联调验收
 
-见 `ACCEPTANCE.md`。Bot webhook / Token 在**主仓**；本仓保证经济面可嵌 + 接线校验。
+见 `ACCEPTANCE.md` · 多场景实测：`TELEGRAM_SCENARIOS.md`
+
+```bash
+RESET_ANVIL=1 make tg-demo   # 干净 anvil + deploy + seed S1/S2/S4/S5
+cd frontend && npm run dev
+# mock TG: http://127.0.0.1:5173/tg-shell.html
+# MiniApp:  http://127.0.0.1:5173/?view=miniapp
+```
 
 **明确不在主仓做：** Treasury fee/split、NFT mint 阈值、pool claim 细节、FeeBridge/Mirror 内部、完整链上代发（本仓前端钱包 / 可选 relayer）。

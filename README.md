@@ -96,7 +96,12 @@ cd frontend && npm i && npm run sync-addresses && npm run dev
 ```bash
 make export-abis      # abi/*.json for main BFF
 make verify-wiring    # FeeBridge.core == Bilateral + cold-start quote
+RESET_ANVIL=1 make tg-demo   # local Telegram multi-scenario seed
+cd frontend && npm run dev
+# mock: http://127.0.0.1:5173/tg-shell.html
 ```
+
+指南：[`integrations/telegram-miniapp/TELEGRAM_SCENARIOS.md`](integrations/telegram-miniapp/TELEGRAM_SCENARIOS.md)
 
 ## 文档
 
