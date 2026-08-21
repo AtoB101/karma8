@@ -6,11 +6,21 @@ import { NodeRegisterPage } from "./pages/NodeRegisterPage";
 import { GovernancePage } from "./pages/GovernancePage";
 import { ContributionNftPage } from "./pages/ContributionNftPage";
 import { MiniAppEconomyPage } from "./pages/MiniAppEconomyPage";
+import { LandingPage } from "./pages/LandingPage";
 import { treasuryAbi, ZERO_ADDRESS, type EconomyAddresses } from "./lib/abis";
 import { isConfigured, readAddresses } from "./lib/addresses";
 import { isMiniAppView } from "./lib/telegram";
 
-type Tab = "stake" | "node" | "gov" | "nft" | "status" | "miniapp";
+type View = "landing" | "console" | "miniapp";
+type Tab = "stake" | "node" | "gov" | "nft" | "status";
+
+function initialView(): View {
+  if (typeof window === "undefined") return "landing";
+  const q = new URLSearchParams(window.location.search);
+  if (q.get("view") === "miniapp" || isMiniAppView()) return "miniapp";
+  if (q.get("view") === "console") return "console";
+  return "landing";
+}
 
 function StatusPanel({ addresses }: { addresses: EconomyAddresses }) {
   const revenue = useReadContract({
@@ -34,22 +44,26 @@ function StatusPanel({ addresses }: { addresses: EconomyAddresses }) {
 
   return (
     <section className="karma-panel">
-      <h2>上线状态</h2>
+      <h2>上线状态 · 商业门禁</h2>
       <div className="karma-meta">
         <div>
-          <span>盈利模式</span>
-          <strong>{revenue.data ? "ON" : "OFF（冷启动）"}</strong>
+          <span>阶段</span>
+          <strong>{revenue.data ? "P2 收费" : "P1 冷启动"}</strong>
         </div>
         <div>
-          <span>手续费</span>
-          <strong>{fee.data?.toString() ?? "20"} bps</strong>
+          <span>盈利模式</span>
+          <strong>{revenue.data ? "ON" : "OFF"}</strong>
+        </div>
+        <div>
+          <span>手续费常量</span>
+          <strong>{fee.data != null ? `${fee.data.toString()} bps` : "—"}</strong>
         </div>
         <div>
           <span>分账</span>
           <strong>
             {splits.data
               ? `${splits.data[0]}/${splits.data[1]}/${splits.data[2]}/${splits.data[3]}`
-              : "40/30/20/10"}
+              : "—"}
           </strong>
         </div>
         <div>
@@ -61,30 +75,52 @@ function StatusPanel({ addresses }: { addresses: EconomyAddresses }) {
           <strong style={{ fontSize: "0.85rem", wordBreak: "break-all" }}>{addresses.feeBridge}</strong>
         </div>
       </div>
-      <p>冷启动阶段保持 OFF；治理投票通过后再开启飞轮。费率与分账链上不可变。</p>
+      <p>
+        P1：fee=0 仍记 GMV。P2 须治理开启并满足 `docs/commercial/COMMERCIAL_STANDARD.md`。健康检查：
+        <a href="/health.json" style={{ color: "var(--karma-accent)" }}>
+          /health.json
+        </a>
+      </p>
     </section>
   );
 }
 
 export function App() {
-  const miniDefault = useMemo(() => isMiniAppView(), []);
-  const [tab, setTab] = useState<Tab>(miniDefault ? "miniapp" : "status");
+  const [view, setView] = useState<View>(() => initialView());
+  const [tab, setTab] = useState<Tab>("status");
   const addresses = useMemo(() => readAddresses(), []);
   const configured = isConfigured(addresses);
   const { address, isConnected } = useAccount();
   const { connect, isPending } = useConnect();
   const { disconnect } = useDisconnect();
 
-  if (tab === "miniapp" || miniDefault) {
+  const go = (next: View) => {
+    setView(next);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (next === "landing") url.searchParams.delete("view");
+      else url.searchParams.set("view", next === "miniapp" ? "miniapp" : "console");
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
+
+  if (view === "landing") {
+    return (
+      <LandingPage
+        onOpenConsole={() => go("console")}
+        onOpenMiniApp={() => go("miniapp")}
+      />
+    );
+  }
+
+  if (view === "miniapp") {
     return (
       <>
-        {!miniDefault && (
-          <div className="karma-economy" style={{ maxWidth: 960, margin: "0 auto", paddingBottom: 0 }}>
-            <button className="karma-btn karma-btn-ghost" type="button" onClick={() => setTab("status")}>
-              ← 完整控制台
-            </button>
-          </div>
-        )}
+        <div className="karma-economy" style={{ maxWidth: 960, margin: "0 auto", paddingBottom: 0 }}>
+          <button className="karma-btn karma-btn-ghost" type="button" onClick={() => go("landing")}>
+            ← 官网
+          </button>
+        </div>
         <MiniAppEconomyPage addresses={addresses} />
       </>
     );
@@ -98,6 +134,9 @@ export function App() {
           <h1>Economy Console</h1>
         </div>
         <div className="karma-row">
+          <button className="karma-btn karma-btn-ghost" type="button" onClick={() => go("landing")}>
+            官网
+          </button>
           {isConnected ? (
             <>
               <span style={{ color: "var(--karma-muted)", fontSize: "0.9rem" }}>
@@ -121,8 +160,8 @@ export function App() {
       </div>
 
       <p>
-        质押、节点、治理与贡献凭证控制台。盈利未开启时分红与手续费减免锁定。
-        {!configured && " 请配置 VITE_TREASURY 等环境变量（可由 deployments/local.json 导入）。"}
+        商业化控制台：质押、节点、治理与贡献。未配置地址时仅展示结构。
+        {!configured && " 请同步 deployments 地址。"}
       </p>
 
       <div className="karma-row" style={{ marginBottom: "1.25rem" }}>
@@ -133,7 +172,6 @@ export function App() {
             ["node", "节点"],
             ["gov", "治理"],
             ["nft", "贡献 NFT"],
-            ["miniapp", "MiniApp 经济面"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -145,6 +183,9 @@ export function App() {
             {label}
           </button>
         ))}
+        <button className="karma-btn karma-btn-ghost" type="button" onClick={() => go("miniapp")}>
+          MiniApp
+        </button>
       </div>
 
       {tab === "status" && <StatusPanel addresses={addresses} />}

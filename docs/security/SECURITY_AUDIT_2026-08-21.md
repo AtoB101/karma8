@@ -63,9 +63,9 @@ Audit found **5 Critical** and **several High** issues in governance, FeeBridge/
 |----|-------|--------|
 | H1 | `DeployEconomy` never set `verifierPool.setArbitrator` before `onlyTreasury` handoff | **Fixed** in `DeployEconomy.s.sol` |
 | H2 | Investor `markInvestorStakeHold` without stake | **Fixed** — mark + claim require `stakeOf > 0` |
-| H3 | `ContributorRegistry.register` self-assigns BUILDER/VERIFIER | **Open** — product risk; gate roles via governance before revenue |
-| H4 | Pool admin (`setKarmaCore`/`setRegistry`/…) bricked after `setTreasury(Treasury)` | **Open** — add governance admin or Treasury relay |
-| H5 | `CoreEscrowAdapter` swallows freeze/release failures | **Open** — fail-hard on core calls |
+| H3 | `ContributorRegistry.register` self-assigns BUILDER/VERIFIER | **Fixed** — self-register cannot take BUILDER/SCENE_OWNER/VERIFIER |
+| H4 | Pool admin bricked after `setTreasury(Treasury)` | **Open** — rotate via redeploy/multisig ops runbook |
+| H5 | `CoreEscrowAdapter` swallows freeze/release failures | **Fixed** — fail-hard; requires `coreTarget` |
 | H6 | FeeBridge/`onlyCore` trusts Bilateral for all bill fields | **Accepted trust** if core is audited Karma Bilateral; keep `setCore` behind 7/7 |
 | H7 | Two-EOA wash GMV (`buyer!=seller` both attacker) | **Open** — main Policy / risk; Mirror only blocks exact self-deal |
 

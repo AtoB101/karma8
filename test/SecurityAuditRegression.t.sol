@@ -9,12 +9,15 @@ import {IKarmaCoreView} from "../src/interfaces/IKarmaCoreView.sol";
 import {MultiSigWallet} from "../src/governance/MultiSigWallet.sol";
 import {KarmaGovernor} from "../src/governance/KarmaGovernor.sol";
 import {IMultiTierStake} from "../src/interfaces/IMultiTierStake.sol";
+import {ContributorRegistry} from "../src/cocreation/ContributorRegistry.sol";
+import {IContributorRegistry} from "../src/interfaces/IContributorRegistry.sol";
 
 /// @notice Regression coverage for SECURITY_AUDIT_2026-08-21 Critical/High remediations.
 contract SecurityAuditRegressionTest is EconomyFixture {
     SettlementMirror internal mirror;
     FeeBridge internal bridge;
     ReferenceSettlementCore internal core;
+    ContributorRegistry internal registry;
 
     address internal buyer;
     address internal seller;
@@ -26,6 +29,7 @@ contract SecurityAuditRegressionTest is EconomyFixture {
         seller = makeAddr("seller");
         developer = makeAddr("developer");
 
+        registry = new ContributorRegistry(address(this));
         mirror = new SettlementMirror(address(this), address(0));
         bridge = new FeeBridge(address(usdc), address(treasury), address(mirror), address(stake), address(this));
         core = new ReferenceSettlementCore(address(usdc), address(bridge), address(this));
@@ -34,6 +38,16 @@ contract SecurityAuditRegressionTest is EconomyFixture {
         treasury.setKarmaCore(address(core));
 
         usdc.mint(buyer, 10_000_000e6);
+    }
+
+    function test_SelfRegisterCannotClaimBuilder() public {
+        IContributorRegistry.Role[] memory roles = new IContributorRegistry.Role[](1);
+        roles[0] = IContributorRegistry.Role.BUILDER;
+        bytes32[] memory tracks = new bytes32[](1);
+        tracks[0] = keccak256("digital");
+        vm.prank(makeAddr("self"));
+        vm.expectRevert(ContributorRegistry.PrivilegedRole.selector);
+        registry.register(roles, tracks);
     }
 
     function test_MirrorRejectsOrderIdReplayGmvInflation() public {

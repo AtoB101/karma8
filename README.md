@@ -101,7 +101,13 @@ cd frontend && npm run dev
 # mock: http://127.0.0.1:5173/tg-shell.html
 ```
 
-指南：[`integrations/telegram-miniapp/TELEGRAM_SCENARIOS.md`](integrations/telegram-miniapp/TELEGRAM_SCENARIOS.md)
+指南：[`integrations/telegram-miniapp/TELEGRAM_SCENARIOS.md`](integrations/telegram-miniapp/TELEGRAM_SCENARIOS.md)  
+**正式运营（你的清单）：** [`integrations/telegram-miniapp/USER_OPS_CHECKLIST.md`](integrations/telegram-miniapp/USER_OPS_CHECKLIST.md)  
+**商业化标准：** [`docs/commercial/COMMERCIAL_STANDARD.md`](docs/commercial/COMMERCIAL_STANDARD.md)
+
+```bash
+make commercial-check
+```
 
 ## 文档
 

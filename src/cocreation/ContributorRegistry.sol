@@ -22,6 +22,7 @@ contract ContributorRegistry is IContributorRegistry {
     error Unauthorized();
     error BadInput();
     error NotRegistered();
+    error PrivilegedRole();
 
     modifier onlyGovernance() {
         if (msg.sender != governance) revert Unauthorized();
@@ -39,8 +40,9 @@ contract ContributorRegistry is IContributorRegistry {
         emit GovernanceUpdated(g);
     }
 
-    /// @notice Self-register with roles/tracks (governance can also register others).
+    /// @notice Self-register. Privileged roles (BUILDER / SCENE_OWNER / VERIFIER) require governance.
     function register(Role[] calldata roles, bytes32[] calldata tracks) external {
+        _assertSelfRolesAllowed(roles);
         _register(msg.sender, roles, tracks);
     }
 
@@ -101,6 +103,14 @@ contract ContributorRegistry is IContributorRegistry {
             _tracks[wallet].push(tracks[i]);
         }
         emit Registered(wallet, roles, tracks);
+    }
+
+    function _assertSelfRolesAllowed(Role[] calldata roles) internal pure {
+        for (uint256 i = 0; i < roles.length; i++) {
+            if (roles[i] == Role.BUILDER || roles[i] == Role.SCENE_OWNER || roles[i] == Role.VERIFIER) {
+                revert PrivilegedRole();
+            }
+        }
     }
 
     function _setRoles(address wallet, Role[] calldata roles) internal {

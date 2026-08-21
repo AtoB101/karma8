@@ -3,6 +3,7 @@ import { parseEther, formatEther } from "viem";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { EconomyAddresses, TIER, stakeAbi, stakerPoolAbi } from "../lib/abis";
 import { useRevenueMode } from "../hooks/useRevenueMode";
+import { useWriteGate } from "../hooks/useWriteGate";
 import "../styles/economy.css";
 
 const TIER_OPTIONS = [
@@ -17,6 +18,7 @@ type Props = { addresses: EconomyAddresses };
 export function StakePage({ addresses }: Props) {
   const { address } = useAccount();
   const { enabled: revenueOn } = useRevenueMode(addresses.treasury);
+  const { canWrite, reason: writeBlock } = useWriteGate(addresses);
   const [amount, setAmount] = useState("1000");
   const [tier, setTier] = useState<number>(TIER.Public);
   const { writeContract, isPending } = useWriteContract();
@@ -54,6 +56,7 @@ export function StakePage({ addresses }: Props) {
   });
 
   const onStake = () => {
+    if (!canWrite) return;
     writeContract({
       address: addresses.stake,
       abi: stakeAbi,
@@ -63,6 +66,7 @@ export function StakePage({ addresses }: Props) {
   };
 
   const onClaim = () => {
+    if (!canWrite || !revenueOn) return;
     writeContract({
       address: addresses.stakerPool,
       abi: stakerPoolAbi,
@@ -111,10 +115,11 @@ export function StakePage({ addresses }: Props) {
               </option>
             ))}
           </select>
-          <button className="karma-btn karma-btn-primary" disabled={!address || isPending} onClick={onStake}>
+          <button className="karma-btn karma-btn-primary" disabled={!address || isPending || !canWrite} onClick={onStake}>
             质押
           </button>
         </div>
+        {writeBlock && <p className="karma-hint">{writeBlock}</p>}
       </div>
 
       <div className="karma-panel">
@@ -122,7 +127,7 @@ export function StakePage({ addresses }: Props) {
         <div className="karma-row">
           <button
             className={`karma-btn ${revenueOn ? "karma-btn-primary" : "karma-btn-locked"}`}
-            disabled={!revenueOn || !address || isPending}
+            disabled={!revenueOn || !address || isPending || !canWrite}
             onClick={onClaim}
           >
             {revenueOn ? "领取 USDC" : "盈利未开启 · 已锁定"}
