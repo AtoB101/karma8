@@ -1,4 +1,4 @@
-.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage cocreation patch-verify cross-repo security-local export-abis verify-wiring tg-demo tg-seed
+.PHONY: build test fmt demo-anvil demo-deploy readiness golive linkage cocreation patch-verify cross-repo security-local export-abis verify-wiring tg-demo tg-seed security-audit
 
 build:
 	forge build
@@ -59,3 +59,9 @@ patch-verify:
 
 security-local:
 	forge test --match-contract SecurityHardening -vv
+	forge test --match-contract SecurityAuditRegression -vv
+
+security-audit:
+	forge test --match-contract SecurityHardening -vv
+	forge test --match-contract SecurityAuditRegression -vv
+	@echo "See docs/security/SECURITY_AUDIT_2026-08-21.md"

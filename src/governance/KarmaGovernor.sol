@@ -99,7 +99,7 @@ contract KarmaGovernor is ReentrancyGuard {
         external
         returns (uint256 id)
     {
-        // Hard ban: cannot target parameter setters for fee/split (none exist; belt-and-suspenders)
+        // Deny dangerous privilege escalations / fee-adjacent admin.
         bytes4 sel;
         if (data.length >= 4) {
             sel = bytes4(data[0:4]);
@@ -107,6 +107,12 @@ contract KarmaGovernor is ReentrancyGuard {
         if (
             sel == bytes4(keccak256("setFeeBps(uint256)"))
                 || sel == bytes4(keccak256("setSplitRatios(uint256,uint256,uint256,uint256)"))
+                || sel == bytes4(keccak256("setGovernance(address)")) || sel == bytes4(keccak256("setCore(address)"))
+                || sel == bytes4(keccak256("setReporter(address,bool)"))
+                || sel == bytes4(keccak256("setEnableRevenueMode(bool)"))
+                || sel == bytes4(keccak256("setRevenueMode(bool)"))
+                || sel == bytes4(keccak256("slash(address,uint256,bool)"))
+                || sel == bytes4(keccak256("setTreasury(address)"))
         ) {
             revert ForbiddenParam();
         }
@@ -132,11 +138,7 @@ contract KarmaGovernor is ReentrancyGuard {
         if (p.executed || p.canceled) revert InvalidProposal();
         if (block.timestamp <= p.end) revert NotActive();
 
-        uint256 total = p.forVotes + p.againstVotes;
-        if (total == 0 || (p.forVotes * 10_000) / total < KarmaEconomyConstants.QUORUM_BPS) {
-            revert NotSucceeded();
-        }
-        // also require forVotes > against (majority of cast votes already covered by 51%)
+        if (!_succeeded(p)) revert NotSucceeded();
 
         p.executed = true;
 
@@ -176,8 +178,16 @@ contract KarmaGovernor is ReentrancyGuard {
         forVotes = p.forVotes;
         againstVotes = p.againstVotes;
         active = !p.executed && !p.canceled && block.timestamp >= p.start && block.timestamp <= p.end;
-        uint256 total = p.forVotes + p.againstVotes;
-        succeeded = total > 0 && (p.forVotes * 10_000) / total >= KarmaEconomyConstants.QUORUM_BPS;
+        succeeded = _succeeded(p);
+    }
+
+    function _succeeded(Proposal storage p) internal view returns (bool) {
+        uint256 cast = p.forVotes + p.againstVotes;
+        if (cast == 0) return false;
+        uint256 supply = stake.totalVotingWeight();
+        if (supply == 0) return false;
+        if ((cast * 10_000) / supply < KarmaEconomyConstants.QUORUM_PARTICIPATION_BPS) return false;
+        return (p.forVotes * 10_000) / cast >= KarmaEconomyConstants.QUORUM_BPS;
     }
 
     function _create(
